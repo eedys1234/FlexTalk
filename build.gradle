@@ -1,0 +1,97 @@
+plugins {
+    id 'org.springframework.boot' version '2.2.2.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+//    id 'org.sonarqube' version '3.1.1'
+    id 'java'
+    id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
+    id 'io.franzbecker.gradle-lombok' version '3.0.0'
+}
+
+group 'com.flextalk.we'
+version '1.0'
+sourceCompatibility=1.8
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    all {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compile  'org.springframework.boot:spring-boot-starter-log4j2'
+    compileOnly 'org.projectlombok:lombok' //의존성 충돌나기 때문에
+    compile group:'io.springfox', name:'springfox-swagger2',version: '2.9.2'
+    compile  group:'io.springfox', name:'springfox-swagger-ui',version: '2.9.2'
+    compile  group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.9.2'
+    runtimeOnly 'com.h2database:h2'
+    compile "com.querydsl:querydsl-jpa"
+    compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0'
+    compile group: 'org', name: 'jaudiotagger', version: '2.0.3'
+    compile 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.5.8'
+//    compile 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    compile 'io.jsonwebtoken:jjwt:0.9.1'
+    compile 'org.ehcache:ehcache'
+    compile 'javax.cache:cache-api'
+    compile 'org.springframework.boot:spring-boot-starter-cache'
+    annotationProcessor 'org.projectlombok:lombok'
+    testCompile ('org.springframework.boot:spring-boot-starter-test') {
+        exclude module: 'junit'
+        exclude module: 'junit-vintage-engine'
+    }
+    testCompile ('org.junit.jupiter:junit-jupiter-api:5.2.0')
+    testCompile ('org.junit.jupiter:junit-jupiter-params:5.2.0')
+    testRuntime ('org.junit.jupiter:junit-jupiter-engine:5.2.0')
+    testCompile group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
+
+//    testCompile 'org.springframework.security:spring-security-test'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+
+//querydsl 적용
+def querydslSrcDir = "$buildDir/generated/querydsl"
+
+querydsl {
+    jpa = true
+    querydslSourcesDir = querydslSrcDir
+}
+
+sourceSets {
+    main.java.srcDir querydslSrcDir
+    main {
+
+        resources {
+            srcDirs("src/main/resources", "src/main/resources/profiles")
+        }
+    }
+}
+
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+bootRun {
+    String activeProfile = System.properties['spring.profiles.active']
+    println "zone: ${activeProfile}"
+    systemProperty "spring.profiles.active", activeProfile
+}
+
+configurations {
+    querydsl.extendsFrom compileClasspath
+}
+
+compileQuerydsl {
+    options.annotationProcessorPath = configurations.querydsl
+}
