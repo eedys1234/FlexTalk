@@ -22,7 +22,6 @@ public class MockRoomCollection {
     };
 
     private String[] roomTypes = {
-
             "NORMAL",
             "NORMAL",
             "NORMAL",
@@ -40,9 +39,10 @@ public class MockRoomCollection {
         List<Room> rooms = new ArrayList<>();
 
         for(int i=0;i<roomNames.length;i++) {
-            Room room = Room.create(user, roomNames[i], roomTypes[i], 1);
-            rooms.add(room);
+            MockRoom mockRoom = new MockRoom();
+            rooms.add(mockRoom.create(user, roomNames[i], roomTypes[i]));
         }
+
         return rooms;
     }
 

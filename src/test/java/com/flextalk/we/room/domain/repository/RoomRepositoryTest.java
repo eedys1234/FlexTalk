@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -106,26 +107,20 @@ public class RoomRepositoryTest {
 
         /**
          * room 10
-         * participant
+         * participant 10명
          * user 1명
-         * bookmark 3
          */
+
         //given
         List<Room> rooms = mockRoomCollection.create(registeredUser);
-        List<Participant> participants = mockParticipantCollection.collect(rooms, registeredUser);
         LocalDateTime now = LocalDateTime.now().minusHours(1);
-        List<RoomMessageDate> roomMessageDates = mockRoomMessageDateCollection.create(rooms, now, (date) -> date.plusMinutes(1));
 
         for(Room room : rooms) {
+            room.visit(registeredUser);
+            room.updateRecentDate();
+            ReflectionTestUtils.setField(room.getRoomMessageDate(), "roomMessageRecentDate", now);
+            now = now.plusMinutes(1);
             roomRepository.save(room);
-        }
-
-        for(Participant participant : participants) {
-            participantRepository.save(participant);
-        }
-
-        for(RoomMessageDate roomMessageDate : roomMessageDates) {
-            roomMessageDateRepository.save(roomMessageDate);
         }
 
         //when
@@ -148,10 +143,10 @@ public class RoomRepositoryTest {
 
         //given
         Room room = mockRoomCollection.create(registeredUser).get(0);
-        room.visited(registeredUser);
+        room.visit(registeredUser);
         room.setAlarm(registeredUser);
         room.addBookMark(registeredUser);
-        room.updateRecentMessage();
+        room.updateRecentDate();
 
         Room createdRoom = roomRepository.save(room);
 

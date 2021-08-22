@@ -32,6 +32,7 @@ public class RoomMessageDate {
 
     public static RoomMessageDate generate(Room room) {
         RoomMessageDate roomMessageDate = new RoomMessageDate(room);
+        roomMessageDate.update();
         return roomMessageDate;
     }
 

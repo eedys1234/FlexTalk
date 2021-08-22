@@ -85,7 +85,7 @@ public class Room extends BaseEntity {
      * 채팅방에 사용자를 초대하다
      * @param user 참여자 
      */
-    public void visited(User user) {
+    public void visit(User user) {
         Participant participant = Participant.of(this, user);
         this.participants.add(participant);
     }
@@ -94,7 +94,7 @@ public class Room extends BaseEntity {
      * 채팅방의 참여자를 가져오다
      * @return 채팅방 참여자 목록
      */
-    public List<Participant> takeParticipants() {
+    public List<Participant> participants() {
         return this.participants;
     }
 
@@ -158,7 +158,7 @@ public class Room extends BaseEntity {
     /**
      * 채팅방 내 최근 메시지의 시간 업데이트
      */
-    public void updateRecentMessage() {
+    public void updateRecentDate() {
         this.roomMessageDate = RoomMessageDate.generate(this);
     }
 

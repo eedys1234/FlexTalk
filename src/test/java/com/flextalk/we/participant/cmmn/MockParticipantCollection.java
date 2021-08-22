@@ -9,7 +9,7 @@ import java.util.List;
 
 public class MockParticipantCollection {
 
-    public List<Participant> collect(List<Room> rooms, User user) {
+    public List<Participant> create(List<Room> rooms, User user) {
 
         List<Participant> participants = new ArrayList<>();
 
