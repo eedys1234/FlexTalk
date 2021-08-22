@@ -4,6 +4,7 @@ import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.user.domain.entity.User;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MockRoomCollection {
@@ -40,7 +41,7 @@ public class MockRoomCollection {
 
         for(int i=0;i<roomNames.length;i++) {
             MockRoom mockRoom = new MockRoom();
-            rooms.add(mockRoom.create(user, roomNames[i], roomTypes[i]));
+            rooms.add(mockRoom.create(user, roomNames[i], roomTypes[i], 2));
         }
 
         return rooms;

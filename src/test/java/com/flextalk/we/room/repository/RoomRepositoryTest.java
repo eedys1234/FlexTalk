@@ -1,8 +1,8 @@
-package com.flextalk.we.room.domain.repository;
+package com.flextalk.we.room.repository;
 
 import com.flextalk.we.participant.cmmn.MockParticipantCollection;
-import com.flextalk.we.participant.domain.entity.Participant;
-import com.flextalk.we.participant.domain.repository.ParticipantRepository;
+import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.repository.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomBookMarkCollection;
 import com.flextalk.we.room.cmmn.MockRoomCollection;
 import com.flextalk.we.room.cmmn.MockRoomMessageDateCollection;
@@ -59,7 +59,7 @@ public class RoomRepositoryTest {
     private MockParticipantCollection mockParticipantCollection;
 
     @BeforeEach
-    public void fixture() {
+    public void setup() {
         String email = "TEST@gmail.com";
         String password = "TEST1234";
         User user = User.register(email, password);
@@ -78,7 +78,7 @@ public class RoomRepositoryTest {
         //given
         String roomName = "사용자1";
         String roomType = "NORMAL";
-        int room_limit_size = 1;
+        int room_limit_size = 2;
 
         //when
         Room room = Room.create(registeredUser, roomName, roomType, room_limit_size);
@@ -116,7 +116,6 @@ public class RoomRepositoryTest {
         LocalDateTime now = LocalDateTime.now().minusHours(1);
 
         for(Room room : rooms) {
-            room.visit(registeredUser);
             room.updateRecentDate();
             ReflectionTestUtils.setField(room.getRoomMessageDate(), "roomMessageRecentDate", now);
             now = now.plusMinutes(1);
@@ -143,7 +142,6 @@ public class RoomRepositoryTest {
 
         //given
         Room room = mockRoomCollection.create(registeredUser).get(0);
-        room.visit(registeredUser);
         room.setAlarm(registeredUser);
         room.addBookMark(registeredUser);
         room.updateRecentDate();

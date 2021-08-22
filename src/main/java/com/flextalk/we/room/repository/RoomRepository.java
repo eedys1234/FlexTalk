@@ -1,4 +1,4 @@
-package com.flextalk.we.room.domain.repository;
+package com.flextalk.we.room.repository;
 
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.user.domain.entity.User;
@@ -10,7 +10,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
-import static com.flextalk.we.participant.domain.entity.QParticipant.*;
+import static com.flextalk.we.participant.repository.entity.QParticipant.*;
 import static com.flextalk.we.room.domain.entity.QRoom.room;
 import static com.flextalk.we.room.domain.entity.QRoomMessageDate.roomMessageDate;
 

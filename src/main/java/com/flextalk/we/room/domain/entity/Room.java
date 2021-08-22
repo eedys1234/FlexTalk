@@ -1,7 +1,7 @@
 package com.flextalk.we.room.domain.entity;
 
 import com.flextalk.we.cmmn.entity.BaseEntity;
-import com.flextalk.we.participant.domain.entity.Participant;
+import com.flextalk.we.participant.repository.entity.Participant;
 import com.flextalk.we.user.domain.entity.User;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -47,9 +47,9 @@ public class Room extends BaseEntity {
     @Column(name = "is_delete")
     private Boolean isDelete;
 
-    private Room(String roomName, String roomType, Integer roomParticipantCount) {
+    private Room(String roomName, String roomType, Integer roomLimitCount) {
         this.roomName = Objects.requireNonNull(roomName);
-        this.roomTypeInfo = new RoomTypeInfo(roomType, roomParticipantCount);
+        this.roomTypeInfo = new RoomTypeInfo(roomType, roomLimitCount);
     }
 
     /**
@@ -57,11 +57,11 @@ public class Room extends BaseEntity {
      * @param creator 채팅방 생성자
      * @param roomName 채팅방 이름
      * @param roomType 채팅방 종류
-     * @param roomParticipantCount 채팅방 인원
+     * @param roomLimitCount 채팅방 인원
      * @return 채팅방
      */
-    public static Room create(User creator, String roomName, String roomType, Integer roomParticipantCount) {
-        Room room = new Room(roomName, roomType, roomParticipantCount);
+    public static Room create(User creator, String roomName, String roomType, Integer roomLimitCount) {
+        Room room = new Room(roomName, roomType, roomLimitCount);
         room.appoint(creator);
         return room;
     }
@@ -72,6 +72,7 @@ public class Room extends BaseEntity {
      */
     private void appoint(User creator) {
         this.creator = creator;
+        invite(creator);
     }
 
     /**
@@ -85,10 +86,19 @@ public class Room extends BaseEntity {
      * 채팅방에 사용자를 초대하다
      * @param user 참여자 
      */
-    public void visit(User user) {
+    public void invite(User user) {
+
+        if(isFullParticipant()) {
+            throw new IllegalStateException("채팅방 제한인원이 도달하였습니다.");
+        }
+        else if(matchParticipant(user)) {
+            throw new IllegalArgumentException("이미 채팅방에 참여하였습니다. userId = " + user.getId());
+        }
+
         Participant participant = Participant.of(this, user);
         this.participants.add(participant);
     }
+
 
     /**
      * 채팅방의 참여자를 가져오다
@@ -107,16 +117,22 @@ public class Room extends BaseEntity {
     }
 
     /**
+     * 채팅방의 참여자 수가 제한된 수만큼 찼는지 확인
+     * @return 참여자수가 제한된 수와 동일한지 여부
+     */
+    private boolean isFullParticipant() {
+        return this.participants.size() == this.roomTypeInfo.getRoomLimitCount();
+    }
+
+    /**
      * 채팅방의 참여자와 일치하는 참여자 여부
      * @param user 참여자
-     * @return 매칭된 참여자
+     * @return 참여 여부
      * @throws IllegalArgumentException 채팅방에 참여자가 아닐경우
      */
-    private Participant matchParticipant(User user) {
+    private boolean matchParticipant(User user) {
         return this.participants.stream()
-                .filter(participant -> participant.isParticipant(user))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅방의 참여자가 아닙니다. userId = " + user.getId()));
+                .anyMatch(participant -> participant.isParticipant(user));
     }
     
     /**
@@ -130,10 +146,11 @@ public class Room extends BaseEntity {
             //인수값이 무엇이든지 실패할경우
             throw new IllegalStateException("채팅방에는 최소 1명의 참여자가 존재해야합니다. roomId = " + this.id);
         }
+        else if(!matchParticipant(user)) {
+            throw new IllegalArgumentException("채팅방의 참여자가 아닙니다. userId = " + user.getId());
+        }
 
-        Participant matchParticipant = matchParticipant(user);
-
-        RoomBookMark bookMark = RoomBookMark.of(matchParticipant.getUser(), this);
+        RoomBookMark bookMark = RoomBookMark.of(user, this);
         this.roomBookMarks.add(bookMark);
     }
 
@@ -148,10 +165,11 @@ public class Room extends BaseEntity {
             //인수값이 무엇이든지 실패할경우
             throw new IllegalStateException("채팅방에는 최소 1명의 참여자가 존재해야합니다. roomId = " + this.id);
         }
+        else if(!matchParticipant(user)) {
+            throw new IllegalArgumentException("채팅방의 참여자가 아닙니다. userId = " + user.getId());
+        }
 
-        Participant matchParticipant = matchParticipant(user);
-
-        RoomAlarm alarm = RoomAlarm.of(matchParticipant.getUser(), this);
+        RoomAlarm alarm = RoomAlarm.of(user, this);
         this.roomAlarms.add(alarm);
     }
 

@@ -1,4 +1,4 @@
-package com.flextalk.we.room.domain.repository;
+package com.flextalk.we.room.repository;
 
 import com.flextalk.we.room.domain.entity.QRoomBookMark;
 import com.flextalk.we.room.domain.entity.RoomBookMark;

@@ -8,8 +8,8 @@ import java.util.List;
 
 public class MockRoom {
 
-    public Room create(User user, String roomName, String roomType) {
-        Room room = Room.create(user, roomName, roomType, 1);
+    public Room create(User user, String roomName, String roomType, int roomLimitCount) {
+        Room room = Room.create(user, roomName, roomType, roomLimitCount);
         return room;
     }
 

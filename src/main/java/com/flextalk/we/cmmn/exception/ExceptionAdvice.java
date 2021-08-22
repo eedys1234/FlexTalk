@@ -3,13 +3,12 @@ package com.flextalk.we.cmmn.exception;
 import com.flextalk.we.cmmn.response.ErrorResponse;
 import javassist.NotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.MethodNotAllowedException;
 
-import java.nio.file.AccessDeniedException;
 
 @RestControllerAdvice
 public class ExceptionAdvice {
@@ -32,21 +31,21 @@ public class ExceptionAdvice {
      * @return ErrorResponse
      */
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-    @ExceptionHandler(MethodNotAllowedException.class)
-    public ErrorResponse handleMethodNotAllowedException(MethodNotAllowedException e) {
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ErrorResponse handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
         return ErrorResponse.of(ErrorCode.METHOD_NOT_ALLOWED);
     }
 
-    /**
-     * 인증되지 않은 사용자일경우 발생
-     * @param e not exist token
-     * @return ErrorResponse
-     */
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ExceptionHandler(AccessDeniedException.class)
-    public ErrorResponse handleAccessDeniedException(AccessDeniedException e) {
-        return ErrorResponse.of(ErrorCode.UNAUTHORIZED);
-    }
+//    /**
+//     * 인증되지 않은 사용자일경우 발생
+//     * @param e not exist token
+//     * @return ErrorResponse
+//     */
+//    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+//    @ExceptionHandler(AccessDeniedException.class)
+//    public ErrorResponse handleAccessDeniedException(AccessDeniedException e) {
+//        return ErrorResponse.of(ErrorCode.UNAUTHORIZED);
+//    }
 
     /**
      * url이 없을경우 발생

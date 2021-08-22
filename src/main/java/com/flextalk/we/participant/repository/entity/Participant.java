@@ -1,4 +1,4 @@
-package com.flextalk.we.participant.domain.entity;
+package com.flextalk.we.participant.repository.entity;
 
 import com.flextalk.we.cmmn.entity.BaseEntity;
 import com.flextalk.we.room.domain.entity.Room;
@@ -37,8 +37,18 @@ public class Participant extends BaseEntity {
         this.user = Objects.requireNonNull(user);
     }
 
+    private Participant(Room room, User user, Boolean isOwner) {
+        this(room, user);
+        this.isOwner = isOwner;
+    }
+
     public static Participant of(Room room, User user) {
         Participant participant = new Participant(room, user);
+        return participant;
+    }
+
+    public static Participant of(Room room, User user, Boolean isOwner) {
+        Participant participant = of(room, user, isOwner);
         return participant;
     }
 
