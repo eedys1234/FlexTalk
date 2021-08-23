@@ -1,9 +1,8 @@
 package com.flextalk.we.user.domain.entity;
 
 import com.flextalk.we.cmmn.entity.BaseEntity;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
 import javax.persistence.*;
 import java.util.Objects;
 
@@ -11,6 +10,7 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "ft_user")
+@EqualsAndHashCode(of = {"email"})
 public class User extends BaseEntity {
 
     @Id

@@ -1,12 +1,9 @@
-package com.flextalk.we.room.repository;
+package com.flextalk.we.room.domain.repository;
 
-import com.flextalk.we.room.domain.entity.QRoom;
-import com.flextalk.we.room.domain.entity.QRoomAlarm;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.entity.RoomAlarm;
 import com.flextalk.we.user.domain.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -22,10 +19,17 @@ public class RoomAlarmRepository {
     private final EntityManager entityManager;
     private final JPAQueryFactory queryFactory;
 
-    public List<RoomAlarm> findByUserId(User user) {
+    public List<RoomAlarm> findByUser(User user) {
         return queryFactory.select(roomAlarm)
                 .from(roomAlarm)
                 .where(roomAlarm.user.eq(user))
+                .fetch();
+    }
+
+    public List<RoomAlarm> findByRooms(List<Room> rooms, User user) {
+        return queryFactory.select(roomAlarm)
+                .from(roomAlarm)
+                .where(roomAlarm.room.in(rooms), roomAlarm.user.eq(user))
                 .fetch();
     }
 }

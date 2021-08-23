@@ -1,14 +1,13 @@
-package com.flextalk.we.participant.repository;
+package com.flextalk.we.participant.domain;
 
-import com.flextalk.we.participant.repository.entity.Participant;
-import com.flextalk.we.participant.repository.repository.ParticipantRepository;
+import com.flextalk.we.participant.domain.entity.Participant;
+import com.flextalk.we.participant.domain.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoom;
 import com.flextalk.we.room.domain.entity.Room;
-import com.flextalk.we.room.repository.RoomRepository;
+import com.flextalk.we.room.domain.repository.RoomRepository;
 import com.flextalk.we.user.cmmn.MockUserCollection;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
-import org.hamcrest.collection.IsArray;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +21,6 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.collection.IsArray.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest

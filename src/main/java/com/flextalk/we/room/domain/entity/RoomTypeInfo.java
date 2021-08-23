@@ -49,7 +49,7 @@ public class RoomTypeInfo {
     }
 
     @Getter
-    protected enum RoomType {
+    public enum RoomType {
         NORMAL(2),
         GROUP(1000),
         OPEN(1000);
@@ -58,6 +58,10 @@ public class RoomTypeInfo {
 
         RoomType(final int default_participant_count) {
             this.default_participant_count = default_participant_count;
+        }
+
+        public String getKey() {
+            return name();
         }
     }
 

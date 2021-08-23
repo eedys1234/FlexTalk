@@ -1,6 +1,6 @@
-package com.flextalk.we.room.repository;
+package com.flextalk.we.room.domain.repository;
 
-import com.flextalk.we.room.domain.entity.QRoomBookMark;
+import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.entity.RoomBookMark;
 import com.flextalk.we.user.domain.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -31,10 +31,17 @@ public class RoomBookMarkRepository {
         );
     }
 
-    public List<RoomBookMark> findByUserId(User user) {
+    public List<RoomBookMark> findByUser(User user) {
         return queryFactory.select(roomBookMark)
                 .from(roomBookMark)
                 .where(roomBookMark.user.eq(user))
+                .fetch();
+    }
+
+    public List<RoomBookMark> findByRooms(List<Room> rooms, User user) {
+        return queryFactory.select(roomBookMark)
+                .from(roomBookMark)
+                .where(roomBookMark.room.in(rooms), roomBookMark.user.eq(user))
                 .fetch();
     }
 }

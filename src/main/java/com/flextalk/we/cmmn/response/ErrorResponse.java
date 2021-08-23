@@ -44,16 +44,22 @@ public class ErrorResponse {
     }
 
     public static ErrorResponse of(final ErrorCode errorCode, final BindingResult bindingResult) {
-        return new ErrorResponse(errorCode, ErrorParam.of(bindingResult));
+        return new ErrorResponse(errorCode, ErrorParamSet.create(bindingResult));
     }
 
     @Getter
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    private static class ErrorParam {
+    public static class ErrorParam {
 
         private String param;
         private String value;
         private String msg;
+
+        private ErrorParam(String param, String value, String msg) {
+            this.param = param;
+            this.value = value;
+            this.msg = msg;
+        }
 
         private ErrorParam(FieldError error) {
             this.param = error.getField();
@@ -61,7 +67,15 @@ public class ErrorResponse {
             this.msg = error.getDefaultMessage();
         }
 
-        public static List<ErrorParam> of(final BindingResult bindingResult) {
+        public static ErrorParam of(String param, String value, String msg) {
+            return new ErrorParam(param, value, msg);
+        }
+
+    }
+
+    public static class ErrorParamSet {
+
+        public static List<ErrorParam> create(final BindingResult bindingResult) {
             final List<FieldError> errors = bindingResult.getFieldErrors();
             return errors.stream()
                     .map(ErrorParam::new)

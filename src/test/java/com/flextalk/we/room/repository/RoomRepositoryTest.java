@@ -1,8 +1,8 @@
 package com.flextalk.we.room.repository;
 
 import com.flextalk.we.participant.cmmn.MockParticipantCollection;
-import com.flextalk.we.participant.repository.entity.Participant;
-import com.flextalk.we.participant.repository.repository.ParticipantRepository;
+import com.flextalk.we.participant.domain.entity.Participant;
+import com.flextalk.we.participant.domain.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomBookMarkCollection;
 import com.flextalk.we.room.cmmn.MockRoomCollection;
 import com.flextalk.we.room.cmmn.MockRoomMessageDateCollection;
@@ -10,6 +10,10 @@ import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.entity.RoomAlarm;
 import com.flextalk.we.room.domain.entity.RoomBookMark;
 import com.flextalk.we.room.domain.entity.RoomMessageDate;
+import com.flextalk.we.room.domain.repository.RoomAlarmRepository;
+import com.flextalk.we.room.domain.repository.RoomBookMarkRepository;
+import com.flextalk.we.room.domain.repository.RoomMessageDateRepository;
+import com.flextalk.we.room.domain.repository.RoomRepository;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -156,8 +160,8 @@ public class RoomRepositoryTest {
         //then
         Optional<Room> findRoom = roomRepository.findOne(roomId);
         Optional<RoomMessageDate> findRoomMessageDates = roomMessageDateRepository.findByRoomId(room);
-        List<RoomBookMark> findBookMarks = roomBookMarkRepository.findByUserId(registeredUser);
-        List<RoomAlarm> findAlarms = roomAlarmRepository.findByUserId(registeredUser);
+        List<RoomBookMark> findBookMarks = roomBookMarkRepository.findByUser(registeredUser);
+        List<RoomAlarm> findAlarms = roomAlarmRepository.findByUser(registeredUser);
         List<Participant> findParticipants = participantRepository.findByUser(registeredUser);
 
         assertThat(resValue, is(1L));

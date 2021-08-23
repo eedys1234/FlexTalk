@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.Optional;
 
 import static com.flextalk.we.user.domain.entity.QUser.user;
 
@@ -23,8 +24,18 @@ public class UserRepository {
         return user;
     }
 
+    public Optional<User> findOne(Long userId) {
+        return Optional.ofNullable(
+                queryFactory.select(user)
+                .from(user)
+                .where(user.id.eq(userId))
+                .fetchOne()
+        );
+    }
+
     public List<User> findAll() {
         return queryFactory.selectFrom(user)
                 .fetch();
     }
+
 }
