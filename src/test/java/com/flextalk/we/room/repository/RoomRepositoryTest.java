@@ -158,7 +158,7 @@ public class RoomRepositoryTest {
         Optional<RoomMessageDate> findRoomMessageDates = roomMessageDateRepository.findByRoomId(room);
         List<RoomBookMark> findBookMarks = roomBookMarkRepository.findByUserId(registeredUser);
         List<RoomAlarm> findAlarms = roomAlarmRepository.findByUserId(registeredUser);
-        List<Participant> findParticipants = participantRepository.findByUserId(registeredUser);
+        List<Participant> findParticipants = participantRepository.findByUser(registeredUser);
 
         assertThat(resValue, is(1L));
         assertThat(findRoom, equalTo(Optional.empty()));
