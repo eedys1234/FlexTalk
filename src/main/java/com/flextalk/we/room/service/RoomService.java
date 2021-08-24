@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -30,6 +29,7 @@ public class RoomService {
      * 채팅방 생성 함수
      * @param roomSaveRequestDto 채팅방 생성 시 필요한 정보를 전달하는 Dto
      * @return Room Id
+     * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자)
      */
     @Transactional
     public Long createRoom(Long userId, RoomSaveRequestDto roomSaveRequestDto) {
@@ -43,8 +43,9 @@ public class RoomService {
     /**
      * 채팅방 삭제 함수
      * @param userId 채팅방 Owner
-     * @param roomId 채팅방 Id
-     * @return 채팅방 Id
+     * @param roomId 채팅방 ID
+     * @return 채팅방 ID
+     * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자 | 채팅방)
      */
     @Transactional
     public Long deleteRoom(Long userId, Long roomId) {
@@ -65,8 +66,9 @@ public class RoomService {
 
     /**
      * 사용자의 Rooms
-     * @param userId 사용자
+     * @param userId 사용자 ID
      * @return Rooms
+     * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자)
      */
     @Transactional(readOnly = true)
     public List<RoomResponseDto> getRooms(Long userId) {
@@ -82,10 +84,11 @@ public class RoomService {
     }
 
     /**
-     *
-     * @param userId
-     * @param roomId
-     * @return
+     * 즐겨찾기 등록
+     * @param userId 즐겨찾기를 등록하려는 사용자 ID
+     * @param roomId 즐겨찾기를 등록하려는 채팅방 ID
+     * @return 즐겨찾기가 등록된 채팅방 ID
+     * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자 | 채팅방)
      */
     @Transactional
     public Long addBookMark(Long userId, Long roomId) {
@@ -102,10 +105,32 @@ public class RoomService {
     }
 
     /**
-     *
-     * @param userId
-     * @param roomId
-     * @return
+     * 즐겨찾기 삭제
+     * @param userId 즐겨찾기를 삭제하려는 사용자 ID
+     * @param roomId 즐겨찾기가 등록된 채팅방 ID
+     * @return 즐겨찾기가 삭제된 채팅방 ID
+     * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자 | 채팅방)
+     */
+    @Transactional
+    public Long deleteBookMark(Long userId, Long roomId) {
+
+        User user = userRepository.findOne(userId)
+                .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));
+
+        Room room = roomRepository.findOneWithDetailInfo(roomId)
+                .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
+
+
+        room.deleteBookMark(user);
+        return room.getId();
+    }
+
+    /**
+     * 알람 설정
+     * @param userId 알람을 설정하려는 사용자 ID
+     * @param roomId 알람을 설정하려는 채팅방 ID
+     * @return 알람이 설정된 채팅방 ID
+     * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자 | 채팅방)
      */
     @Transactional
     public Long setAlarm(Long userId, Long roomId) {
@@ -118,6 +143,27 @@ public class RoomService {
 
 
         room.setAlarm(user);
+        return room.getId();
+    }
+
+    /**
+     * 알람 삭제
+     * @param userId 알람을 삭제하려는 사용자 ID
+     * @param roomId 알람이 설정된 채팅방 ID
+     * @return 알람이 삭제된 채팅방 ID
+     * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자 | 채팅방)
+     */
+    @Transactional
+    public Long deleteAlarm(Long userId, Long roomId) {
+
+        User user = userRepository.findOne(userId)
+                .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));
+
+        Room room = roomRepository.findOneWithDetailInfo(roomId)
+                .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
+
+
+        room.deleteAlarm(user);
         return room.getId();
     }
 }
