@@ -202,6 +202,21 @@ public class Room extends BaseEntity {
     }
 
     /**
+     * 즐겨찾기 삭제
+     * @param user 즐겨찾기 삭제하려는 사용자
+     * @throws IllegalArgumentException 즐겨찾기가 등록되지 않을경우
+     */
+    public void deleteBookMark(User user) {
+        if(!matchBookMark(user)) {
+            throw new IllegalArgumentException("채팅방에 즐겨찾기가 등록되지 않았습니다. roomId = " + this.id);
+        }
+
+        this.roomBookMarks = this.roomBookMarks.stream()
+                .filter(book -> !book.getUser().equals(user))
+                .collect(toList());
+    }
+
+    /**
      * room bookmark matching
      * @param user 즐겨찾기를 설정하려는 사람
      * @return 즐겨찾기 설정되었는지 여부
@@ -230,8 +245,29 @@ public class Room extends BaseEntity {
             throw new IllegalArgumentException("이미 알람을 설정하였습니다. userId = " + user.getId());
         }
 
+        if(matchAlarm(user)) {
+            throw new IllegalArgumentException("이미 알람을 설정하였습니다. userId = " + user.getId());
+        }
+
         RoomAlarm alarm = RoomAlarm.of(user, this);
         this.roomAlarms.add(alarm);
+    }
+
+    /**
+     * 알람 삭제
+     * @param user 알람을 삭제하려는 사용자
+     * @throws IllegalArgumentException 알람이 등록되지 않을경우
+     */
+    public void deleteAlarm(User user) {
+
+        if(!matchAlarm(user)) {
+            throw new IllegalArgumentException("채팅방에 알람이 등록되지 않았습니다. roomId = " + this.id);
+        }
+
+        this.roomAlarms = this.roomAlarms.stream()
+                .filter(alarm -> !alarm.getUser().equals(user))
+                .collect(toList());
+
     }
 
     /**
@@ -242,7 +278,7 @@ public class Room extends BaseEntity {
     private boolean matchAlarm(User user) {
         return this.roomAlarms.stream().anyMatch(alarm -> alarm.getUser().equals(user));
     }
-    
+
     /**
      * 채팅방 내 최근 메시지의 시간 업데이트
      */
