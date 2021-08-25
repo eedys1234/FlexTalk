@@ -1,11 +1,11 @@
-package com.flextalk.we.participant.domain;
+package com.flextalk.we.participant.repository;
 
-import com.flextalk.we.participant.domain.entity.Participant;
-import com.flextalk.we.participant.domain.repository.ParticipantRepository;
-import com.flextalk.we.room.cmmn.MockRoom;
+import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.repository.repository.ParticipantRepository;
+import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.repository.RoomRepository;
-import com.flextalk.we.user.cmmn.MockUserCollection;
+import com.flextalk.we.user.cmmn.MockUserFactory;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,13 +37,11 @@ public class ParticipantRepositoryTest {
     @Autowired
     private ParticipantRepository participantRepository;
 
-    private MockUserCollection userCollection;
-    private MockRoom mockRoom;
+    private MockUserFactory mockUser;
 
     @BeforeEach
     public void setup() {
-        userCollection = new MockUserCollection();
-        mockRoom = new MockRoom();
+        mockUser = new MockUserFactory();
         addUsers();
     }
 
@@ -51,7 +49,7 @@ public class ParticipantRepositoryTest {
      * helper method
      */
     public void addUsers() {
-        List<User> users = userCollection.create();
+        List<User> users = mockUser.createCollection();
         for(User user : users) {
             userRepository.save(user);
         }
@@ -67,7 +65,8 @@ public class ParticipantRepositoryTest {
         final String roomType = "GROUP";
         final int roomLimitCount = 10;
 
-        Room room = mockRoom.create(users.get(0), roomName, roomType, roomLimitCount);
+        MockRoomFactory mockRoom = new MockRoomFactory(users.get(0));
+        Room room = mockRoom.create(roomName, roomType, roomLimitCount);
 
         for(int i=1;i<users.size();i++) {
             room.invite(users.get(i));
@@ -107,7 +106,8 @@ public class ParticipantRepositoryTest {
         final int roomLimitCount = 9;
 
         List<User> users = getUsers();
-        Room room = mockRoom.create(users.get(0), roomName, roomType, roomLimitCount);
+        MockRoomFactory mockRoom = new MockRoomFactory(users.get(0));
+        Room room = mockRoom.create(roomName, roomType, roomLimitCount);
 
         //then
         assertThrows(IllegalStateException.class, () -> {
@@ -129,7 +129,8 @@ public class ParticipantRepositoryTest {
         final int roomLimitCount = 9;
 
         List<User> users = getUsers();
-        Room room = mockRoom.create(users.get(0), roomName, roomType, roomLimitCount);
+        MockRoomFactory mockRoom = new MockRoomFactory(users.get(0));
+        Room room = mockRoom.create(roomName, roomType, roomLimitCount);
 
         //when
         room.invite(users.get(1));

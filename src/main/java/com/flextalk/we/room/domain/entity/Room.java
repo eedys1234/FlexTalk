@@ -1,7 +1,7 @@
 package com.flextalk.we.room.domain.entity;
 
 import com.flextalk.we.cmmn.entity.BaseEntity;
-import com.flextalk.we.participant.domain.entity.Participant;
+import com.flextalk.we.participant.repository.entity.Participant;
 import com.flextalk.we.user.domain.entity.User;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -12,7 +12,6 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -130,7 +129,7 @@ public class Room extends BaseEntity {
     public void leave(User user) {
 
         if (isEmptyParticipant()) {
-            throw new IllegalStateException("채팅방 인원이 존재하지 않습니다.");
+            throw new IllegalStateException("채팅방에는 최소 1명의 참여자가 존재해야합니다. roomId = " + this.id);
         }
 
         if (!matchParticipant(user)) {
@@ -241,10 +240,6 @@ public class Room extends BaseEntity {
             throw new IllegalArgumentException("채팅방의 참여자가 아닙니다. userId = " + user.getId());
         }
         
-        if(matchAlarm(user)) {
-            throw new IllegalArgumentException("이미 알람을 설정하였습니다. userId = " + user.getId());
-        }
-
         if(matchAlarm(user)) {
             throw new IllegalArgumentException("이미 알람을 설정하였습니다. userId = " + user.getId());
         }

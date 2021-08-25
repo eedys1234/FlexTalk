@@ -15,7 +15,9 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
-
+/**
+ * 채팅방에 관한 관리 클래스
+ */
 @Service
 @RequiredArgsConstructor
 public class RoomService {
@@ -89,9 +91,11 @@ public class RoomService {
      * @param roomId 즐겨찾기를 등록하려는 채팅방 ID
      * @return 즐겨찾기가 등록된 채팅방 ID
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자 | 채팅방)
+     * @throws IllegalStateException 채팅방에 참여자가 존재하지 않을경우
+     * @throws IllegalArgumentException 이미 즐겨찾기가 등록되어있거나 채팅방의 참여자가 아닐경우 
      */
     @Transactional
-    public Long addBookMark(Long userId, Long roomId) {
+    public Long addBookMarkToRoom(Long userId, Long roomId) {
 
         User user = userRepository.findOne(userId)
                 .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));
@@ -112,7 +116,7 @@ public class RoomService {
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자 | 채팅방)
      */
     @Transactional
-    public Long deleteBookMark(Long userId, Long roomId) {
+    public Long deleteBookMarkToRoom(Long userId, Long roomId) {
 
         User user = userRepository.findOne(userId)
                 .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));
@@ -133,7 +137,7 @@ public class RoomService {
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자 | 채팅방)
      */
     @Transactional
-    public Long setAlarm(Long userId, Long roomId) {
+    public Long addAlarmToRoom(Long userId, Long roomId) {
 
         User user = userRepository.findOne(userId)
                 .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));
@@ -154,7 +158,7 @@ public class RoomService {
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자 | 채팅방)
      */
     @Transactional
-    public Long deleteAlarm(Long userId, Long roomId) {
+    public Long deleteAlarmToRoom(Long userId, Long roomId) {
 
         User user = userRepository.findOne(userId)
                 .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));

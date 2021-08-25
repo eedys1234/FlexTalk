@@ -1,11 +1,8 @@
 package com.flextalk.we.room.repository;
 
-import com.flextalk.we.participant.cmmn.MockParticipantCollection;
-import com.flextalk.we.participant.domain.entity.Participant;
-import com.flextalk.we.participant.domain.repository.ParticipantRepository;
-import com.flextalk.we.room.cmmn.MockRoomBookMarkCollection;
-import com.flextalk.we.room.cmmn.MockRoomCollection;
-import com.flextalk.we.room.cmmn.MockRoomMessageDateCollection;
+import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.repository.repository.ParticipantRepository;
+import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.entity.RoomAlarm;
 import com.flextalk.we.room.domain.entity.RoomBookMark;
@@ -57,22 +54,12 @@ public class RoomRepositoryTest {
 
     private User registeredUser;
 
-    private MockRoomCollection mockRoomCollection;
-    private MockRoomBookMarkCollection mockRoomBookMarkCollection;
-    private MockRoomMessageDateCollection mockRoomMessageDateCollection;
-    private MockParticipantCollection mockParticipantCollection;
-
     @BeforeEach
     public void setup() {
         String email = "TEST@gmail.com";
         String password = "TEST1234";
         User user = User.register(email, password);
         registeredUser = userRepository.save(user);
-
-        mockRoomCollection = new MockRoomCollection();
-        mockRoomBookMarkCollection = new MockRoomBookMarkCollection();
-        mockRoomMessageDateCollection = new MockRoomMessageDateCollection();
-        mockParticipantCollection = new MockParticipantCollection();
     }
 
     @DisplayName("채팅방 생성 테스트")
@@ -116,7 +103,7 @@ public class RoomRepositoryTest {
          */
 
         //given
-        List<Room> rooms = mockRoomCollection.create(registeredUser);
+        List<Room> rooms = new MockRoomFactory(registeredUser).createCollection();
         LocalDateTime now = LocalDateTime.now().minusHours(1);
 
         for(Room room : rooms) {
@@ -127,7 +114,7 @@ public class RoomRepositoryTest {
         }
 
         //when
-        List<Room> sortedRooms = roomRepository.findByUserId(registeredUser);
+        List<Room> sortedRooms = roomRepository.findByUser(registeredUser);
 
         //then
         List<Room> expectedRooms = new ArrayList<>();
@@ -145,7 +132,12 @@ public class RoomRepositoryTest {
     public void deleteRoomTest() {
 
         //given
-        Room room = mockRoomCollection.create(registeredUser).get(0);
+        MockRoomFactory mockRoom = new MockRoomFactory(registeredUser);
+
+        String roomName = "TEST 채팅방1";
+        String roomType = "NORMAL";
+        int roomLimitCount = 2;
+        Room room = mockRoom.create(roomName, roomType, roomLimitCount);
         room.setAlarm(registeredUser);
         room.addBookMark(registeredUser);
         room.updateRecentDate();

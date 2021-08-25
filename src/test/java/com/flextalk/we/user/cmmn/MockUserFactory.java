@@ -5,7 +5,7 @@ import com.flextalk.we.user.domain.entity.User;
 import java.util.Arrays;
 import java.util.List;
 
-public class MockUserCollection {
+public class MockUserFactory {
 
     List<User> users = Arrays.asList(
             User.register("test_1@gmail.com", "1234!@#$asdf"),
@@ -20,7 +20,11 @@ public class MockUserCollection {
             User.register("test_10@gmail.com", "1234!@#$asdf")
     );
 
-    public List<User> create() {
+    public User create() {
+        return users.get(0);
+    }
+
+    public List<User> createCollection() {
         return users;
     }
 }

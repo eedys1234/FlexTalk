@@ -1,9 +1,6 @@
 package com.flextalk.we.room.domain.repository;
 
-import com.flextalk.we.room.domain.entity.QRoomAlarm;
-import com.flextalk.we.room.domain.entity.QRoomBookMark;
 import com.flextalk.we.room.domain.entity.Room;
-import com.flextalk.we.room.domain.entity.RoomBookMark;
 import com.flextalk.we.user.domain.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -13,11 +10,10 @@ import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
-import static com.flextalk.we.participant.domain.entity.QParticipant.*;
+import static com.flextalk.we.participant.repository.entity.QParticipant.*;
 import static com.flextalk.we.room.domain.entity.QRoom.room;
 import static com.flextalk.we.room.domain.entity.QRoomAlarm.roomAlarm;
 import static com.flextalk.we.room.domain.entity.QRoomBookMark.roomBookMark;
-import static com.flextalk.we.room.domain.entity.QRoomMessageDate.roomMessageDate;
 
 @Repository
 @RequiredArgsConstructor
@@ -38,7 +34,7 @@ public class RoomRepository {
      * @param user 사용자
      * @return 사용자의 채팅방 리스트
      */
-    public List<Room> findByUserId(User user) {
+    public List<Room> findByUser(User user) {
         return queryFactory.select(room)
                 .from(room)
                 .innerJoin(room.participants, participant)

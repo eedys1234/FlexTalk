@@ -3,14 +3,13 @@ package com.flextalk.we.room.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.user.domain.entity.User;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class RoomSaveRequestDto {
 
     @NotNull
