@@ -4,6 +4,7 @@ import com.flextalk.we.cmmn.entity.BaseEntity;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.user.domain.entity.User;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -13,7 +14,10 @@ import java.util.Objects;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "ft_participant")
+@Table(name = "ft_participant", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"room", "user"})
+})
+@EqualsAndHashCode(of = {"id"}, callSuper = false)
 public class Participant extends BaseEntity {
 
     @Id
@@ -43,17 +47,19 @@ public class Participant extends BaseEntity {
     }
 
     public static Participant of(Room room, User user) {
-        Participant participant = new Participant(room, user);
-        return participant;
+        return new Participant(room, user);
     }
 
     public static Participant of(Room room, User user, Boolean isOwner) {
-        Participant participant = of(room, user, isOwner);
-        return participant;
+        return new Participant(room, user, isOwner);
     }
 
     public void assignOwner() {
         this.isOwner = true;
+    }
+
+    public void resign() {
+        this.isOwner = false;
     }
 
     public boolean isParticipant(User user) {

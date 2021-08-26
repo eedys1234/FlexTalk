@@ -24,7 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
+import static java.util.Comparator.*;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -103,13 +106,11 @@ public class RoomRepositoryTest {
          */
 
         //given
-        List<Room> rooms = new MockRoomFactory(registeredUser).createCollection();
+        List<Room> rooms = new MockRoomFactory(registeredUser).createList();
         LocalDateTime now = LocalDateTime.now().minusHours(1);
 
-        for(Room room : rooms) {
-            room.updateRecentDate();
-            ReflectionTestUtils.setField(room.getRoomMessageDate(), "roomMessageRecentDate", now);
-            now = now.plusMinutes(1);
+        for(Room room : rooms)
+        {
             roomRepository.save(room);
         }
 
@@ -117,14 +118,10 @@ public class RoomRepositoryTest {
         List<Room> sortedRooms = roomRepository.findByUser(registeredUser);
 
         //then
-        List<Room> expectedRooms = new ArrayList<>();
-
-        for(int j=rooms.size()-1; j>=0; j--) {
-            expectedRooms.add(rooms.get(j));
-        }
-
-        assertThat(sortedRooms.size(), equalTo(expectedRooms.size()));
-        assertThat(sortedRooms, equalTo(expectedRooms));
+        assertThat(sortedRooms.size(), equalTo(rooms.size()));
+        assertThat(sortedRooms, equalTo(rooms.stream()
+                .sorted(comparing(Room::getId))
+                .collect(toList())));
     }
 
     @DisplayName("채팅방 삭제 시 참여자 정보, 최근 메시지 일자, 즐겨찾기, 알람 삭제 테스트")
@@ -138,7 +135,7 @@ public class RoomRepositoryTest {
         String roomType = "NORMAL";
         int roomLimitCount = 2;
         Room room = mockRoom.create(roomName, roomType, roomLimitCount);
-        room.setAlarm(registeredUser);
+        room.addAlarm(registeredUser);
         room.addBookMark(registeredUser);
         room.updateRecentDate();
 

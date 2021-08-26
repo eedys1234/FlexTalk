@@ -63,7 +63,7 @@ public class RoomServiceTest {
         MockRoomFactory mockRoomFactory = new MockRoomFactory(user);
         String roomName = "테스트 채팅방";
         String roomType = "NORMAL";
-        Integer roomLimitCount = 2;
+        int roomLimitCount = 2;
         return mockRoomFactory.create(roomName, roomType, roomLimitCount);
     }
 
@@ -129,14 +129,14 @@ public class RoomServiceTest {
         verify(roomRepository, times(1)).save(any(Room.class));
     }
 
-    @DisplayName("캐시된 사용자의 채팅방 리스트 가져오기")
+    @DisplayName("캐시된 사용자의 채팅방 리스트 가져오기 테스트")
     @Test
     public void getRooms() {
 
         //given
         User user = getUser();
         MockRoomFactory mockRoomFactory = new MockRoomFactory(user);
-        List<Room> rooms = mockRoomFactory.createCollection();
+        List<Room> rooms = mockRoomFactory.createList();
 
         doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
         doReturn(rooms).when(roomCacheService).getRooms(any(User.class));
@@ -154,7 +154,7 @@ public class RoomServiceTest {
         verify(roomCacheService, times(1)).getRooms(any(User.class));
     }
 
-    @DisplayName("채팅방에 즐겨찾기 등록")
+    @DisplayName("채팅방에 즐겨찾기 등록 테스트")
     @Test
     public void addBookMarkToRoomTest() {
 
@@ -172,7 +172,7 @@ public class RoomServiceTest {
 
         //then
         assertThat(addBookMarkRoomId, is(room.getId()));
-        assertThat(room.getRoomBookMarks(), not(emptyIterable()));
+        assertThat(room.getRoomBookMarks(), not(empty()));
 
         //verify
         verify(userRepository, times(1)).findOne(anyLong());
@@ -198,7 +198,9 @@ public class RoomServiceTest {
         assertThrows(IllegalArgumentException.class, () -> roomService.addBookMarkToRoom(user.getId(), room.getId()));
 
         //verify
-        verify(room, times(2)).addBookMark(user);
+        verify(userRepository, times(1)).findOne(anyLong());
+        verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
+        verify(room, times(2)).addBookMark(any(User.class));
     }
 
     @DisplayName("채팅방에 즐겨찾기 삭제")
@@ -219,7 +221,8 @@ public class RoomServiceTest {
         Long deleteBookMarkRoomId = roomService.deleteBookMarkToRoom(user.getId(), room.getId());
 
         //then
-        assertThat(room.getRoomBookMarks(), emptyIterable());
+        assertThat(deleteBookMarkRoomId, equalTo(room.getId()));
+        assertThat(room.getRoomBookMarks(), empty());
 
         //verify
         verify(userRepository, times(1)).findOne(anyLong());
@@ -243,6 +246,107 @@ public class RoomServiceTest {
         assertThrows(IllegalArgumentException.class, () -> roomService.deleteBookMarkToRoom(user.getId(), room.getId()));
 
         //verify
-        verify(room, times(1)).deleteBookMark(user);
+        verify(userRepository, times(1)).findOne(anyLong());
+        verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
+        verify(room, times(1)).deleteBookMark(any(User.class));
     }
+    
+    @DisplayName("채팅방에 알람 설정 기능 테스트")
+    @Test
+    public void addAlarmToRoomTest() {
+
+        //given
+        User user = getUser();
+        Room room = getRoom(user);
+        Long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(Optional.ofNullable(room)).when(roomRepository).findOneWithDetailInfo(anyLong());
+
+        //when
+        Long addAlarmToRoomId = roomService.addAlarmToRoom(user.getId(), room.getId());
+
+        //then
+        assertThat(addAlarmToRoomId, equalTo(addAlarmToRoomId));
+        assertThat(room.getRoomAlarms(), not(empty()));
+
+        //verify
+        verify(userRepository, times(1)).findOne(anyLong());
+        verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
+    }
+
+    @DisplayName("채팅방에 설정된 알람이 이미 존재할 경우 테스트")
+    @Test
+    public void alreadyAlarmAddToRoomExceptionTest() {
+
+        //given
+        User user = getUser();
+        Room room = spy(getRoom(user));
+        Long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        room.addAlarm(user);
+
+        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(Optional.ofNullable(room)).when(roomRepository).findOneWithDetailInfo(anyLong());
+
+        //when
+        assertThrows(IllegalArgumentException.class, () -> roomService.addAlarmToRoom(user.getId(), room.getId()));
+
+        //verify
+        verify(userRepository, times(1)).findOne(anyLong());
+        verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
+        verify(room, times(2)).addAlarm(any(User.class));
+    }
+
+    @DisplayName("채팅방에 설정된 알람을 제거하는 기능 테스트")
+    @Test
+    public void deleteAlarmToRoom() {
+
+        //given
+        User user = getUser();
+        Room room = getRoom(user);
+        Long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        room.addAlarm(user);
+
+        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(Optional.ofNullable(room)).when(roomRepository).findOneWithDetailInfo(anyLong());
+
+        //when
+        Long deleteAlarmToRoomId = roomService.deleteAlarmToRoom(user.getId(), room.getId());
+
+        //then
+        assertThat(deleteAlarmToRoomId, equalTo(room.getId()));
+        assertThat(room.getRoomAlarms(), empty());
+
+        //verify
+        verify(userRepository, times(1)).findOne(anyLong());
+        verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
+    }
+
+    @DisplayName("설정이 제거된 알람을 다시 제거하려할 때 테스트")
+    @Test
+    public void emptyAlarmDeleteToRoomExceptionTest() {
+
+        //given
+        User user = getUser();
+        Room room = spy(getRoom(user));
+        Long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(Optional.ofNullable(room)).when(roomRepository).findOneWithDetailInfo(anyLong());
+
+        //when, then
+        assertThrows(IllegalArgumentException.class, () -> roomService.deleteAlarmToRoom(user.getId(), room.getId()));
+
+        //verify
+        verify(userRepository, times(1)).findOne(anyLong());
+        verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
+        verify(room, times(1)).deleteAlarm(any(User.class));
+    }
+
 }

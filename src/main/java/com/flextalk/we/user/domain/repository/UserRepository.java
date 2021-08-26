@@ -26,11 +26,17 @@ public class UserRepository {
 
     public Optional<User> findOne(Long userId) {
         return Optional.ofNullable(
-                queryFactory.select(user)
-                .from(user)
+                queryFactory.selectFrom(user)
                 .where(user.id.eq(userId))
                 .fetchOne()
         );
+    }
+
+    public List<User> findByIds(List<Long> userIds) {
+        return queryFactory.selectFrom(user)
+                .where(user.id.in(userIds))
+                .fetch();
+
     }
 
     public List<User> findAll() {

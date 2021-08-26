@@ -10,8 +10,8 @@ import static java.util.stream.Collectors.*;
 
 public class MockRoomFactory {
 
-    private User user;
-    private String[][] roomInfo = {
+    private final User user;
+    private final String[][] roomInfo = {
         {"TEST 채팅방1", "NORMAL", "2"},
         {"TEST 채팅방2", "NORMAL", "2"},
         {"TEST 채팅방3", "NORMAL", "2"},
@@ -24,16 +24,15 @@ public class MockRoomFactory {
         {"TEST 채팅방10", "NORMAL", "2"},
     };
 
-    public MockRoomFactory(User user) {
+    public MockRoomFactory(final User user) {
         this.user = user;
     }
 
     public Room create(String roomName, String roomType, int roomLimitCount) {
-        Room room = Room.create(user, roomName, roomType, roomLimitCount);
-        return room;
+        return Room.create(user, roomName, roomType, roomLimitCount);
     }
 
-    public List<Room> createCollection() {
+    public List<Room> createList() {
         return Arrays.stream(roomInfo)
                 .map(info -> create(info[0], info[1], Integer.parseInt(info[2])))
                 .collect(toList());

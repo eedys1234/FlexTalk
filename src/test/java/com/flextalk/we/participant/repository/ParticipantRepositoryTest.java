@@ -49,7 +49,7 @@ public class ParticipantRepositoryTest {
      * helper method
      */
     public void addUsers() {
-        List<User> users = mockUser.createCollection();
+        List<User> users = mockUser.createList();
         for(User user : users) {
             userRepository.save(user);
         }
@@ -157,4 +157,5 @@ public class ParticipantRepositoryTest {
                 .map(participant -> equalTo(participant.getUser()))
                 .collect(toList())));
     }
+
 }

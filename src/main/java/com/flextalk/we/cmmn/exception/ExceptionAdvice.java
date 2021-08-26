@@ -48,6 +48,17 @@ public class ExceptionAdvice {
 //    }
 
     /**
+     * 인가되지 않은 사용자일경우 발생
+     * @param e not permission
+     * @return ErrorResponse
+     */
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(ResourceAccessDeniedException.class)
+    public ErrorResponse handleResourceAccessDeniedException(ResourceAccessDeniedException e) {
+        return ErrorResponse.of(ErrorCode.FORBIDDEN);
+    }
+
+    /**
      * url이 없을경우 발생
      * @param e not found
      * @return ErrorResponse

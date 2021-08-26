@@ -19,7 +19,7 @@ import static java.util.stream.Collectors.toList;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "ft_room")
-@EqualsAndHashCode(of = {"id"})
+@EqualsAndHashCode(of = {"id"}, callSuper = false)
 public class Room extends BaseEntity {
 
     @Id
@@ -103,10 +103,11 @@ public class Room extends BaseEntity {
     /**
      * 채팅방에 사용자를 초대하다
      * @param user 참여자
+     * @return 참여자 ID
      * @throws IllegalStateException 채팅방을 생성할 때 제한된 인원에 도달했을 경우
      * @throws IllegalArgumentException 초대하고자하는 사용자가 이미 채팅방에 참여했을 경우
      */
-    public void invite(User user) {
+    public Long invite(User user) {
 
         if(isFullParticipant()) {
             throw new IllegalStateException("채팅방 제한인원이 도달하였습니다.");
@@ -118,26 +119,43 @@ public class Room extends BaseEntity {
 
         Participant participant = Participant.of(this, user);
         this.participants.add(participant);
+        return participant.getId();
     }
 
     /**
+     * 채팅방에 사용자를 초대하다
+     * @param users 초대하려는 사용자 리스트
+     * @return 참여자 ID
+     * @throws IllegalStateException 채팅방을 생성할 때 제한된 인원에 도달했을 경우
+     * @throws IllegalArgumentException 초대하고자하는 사용자 중 일부 사용자가 이미 채팅방에 참여했을 경우
+     */
+    public List<Long> invite(List<User> users) {
+        List<Long> participantIds = new ArrayList<>();
+        
+        for(User user : users) {
+            participantIds.add(invite(user));
+        }
+        return participantIds;
+    }
+    
+    /**
      * 사용자가 채팅방에 떠나다
-     * @param user 채팅방을 떠나고자 하는 참여자
+     * @param leaveParticipant 채팅방을 떠나고자 하는 참여자
      * @throws IllegalStateException 채팅방 인원이 존재하지 않을경우
      * @throws IllegalArgumentException 떠나고자 하는 참여자가 채팅방에 참여자가 아닐경우
      */
-    public void leave(User user) {
+    public void leave(Participant leaveParticipant) {
 
         if (isEmptyParticipant()) {
             throw new IllegalStateException("채팅방에는 최소 1명의 참여자가 존재해야합니다. roomId = " + this.id);
         }
 
-        if (!matchParticipant(user)) {
-            throw new IllegalArgumentException("채팅방의 참여자가 아닙니다. userId = " + user.getId());
+        if (!matchParticipant(leaveParticipant)) {
+            throw new IllegalArgumentException("채팅방의 참여자가 아닙니다. participantId = " + leaveParticipant.getId());
         }
 
         this.participants = this.participants.stream()
-                .filter(participant -> !participant.getUser().equals(user))
+                .filter(participant -> !participant.equals(leaveParticipant))
                 .collect(toList());
     }
 
@@ -174,6 +192,17 @@ public class Room extends BaseEntity {
     private boolean matchParticipant(User user) {
         return this.participants.stream()
                 .anyMatch(participant -> participant.isParticipant(user));
+    }
+
+    /**
+     * 채팅방의 참여자와 일치하는 참여자 여부
+     * @param otherParticipant 참여자
+     * @return 참여 여부
+     * @throws IllegalArgumentException 채팅방에 참여자가 아닐경우
+     */
+    private boolean matchParticipant(Participant otherParticipant) {
+        return this.participants.stream()
+                .anyMatch(participant -> participant.equals(otherParticipant));
     }
 
     /**
@@ -229,7 +258,7 @@ public class Room extends BaseEntity {
      * @param user 알람설정 하는 참여자
      * @throws IllegalStateException 채팅방에 참여자가 한명도 없을 시
      */
-    public void setAlarm(User user) {
+    public void addAlarm(User user) {
 
         if(isEmptyParticipant()) {
             //인수값이 무엇이든지 실패할경우
@@ -251,12 +280,12 @@ public class Room extends BaseEntity {
     /**
      * 알람 삭제
      * @param user 알람을 삭제하려는 사용자
-     * @throws IllegalArgumentException 알람이 등록되지 않을경우
+     * @throws IllegalArgumentException 알람이 설정되지 않을경우
      */
     public void deleteAlarm(User user) {
 
         if(!matchAlarm(user)) {
-            throw new IllegalArgumentException("채팅방에 알람이 등록되지 않았습니다. roomId = " + this.id);
+            throw new IllegalArgumentException("채팅방에 알람이 설정되지 않았습니다. roomId = " + this.id);
         }
 
         this.roomAlarms = this.roomAlarms.stream()

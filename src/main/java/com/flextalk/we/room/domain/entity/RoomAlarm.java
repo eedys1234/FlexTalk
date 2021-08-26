@@ -11,7 +11,9 @@ import java.util.Objects;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "ft_room_alarm")
+@Table(name = "ft_room_alarm", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user", "room"})
+})
 public class RoomAlarm {
 
     @Id

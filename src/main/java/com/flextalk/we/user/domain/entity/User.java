@@ -10,7 +10,7 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "ft_user")
-@EqualsAndHashCode(of = {"email"})
+@EqualsAndHashCode(of = {"id", "email"})
 public class User extends BaseEntity {
 
     @Id

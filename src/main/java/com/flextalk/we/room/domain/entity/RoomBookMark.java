@@ -12,7 +12,9 @@ import java.util.Objects;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "ft_room_bookmark")
+@Table(name = "ft_room_bookmark", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user", "room"})
+})
 public class RoomBookMark extends BaseEntity {
 
     @Id
