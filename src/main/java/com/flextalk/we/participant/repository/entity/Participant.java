@@ -39,6 +39,7 @@ public class Participant extends BaseEntity {
     private Participant(Room room, User user) {
         this.room = Objects.requireNonNull(room);
         this.user = Objects.requireNonNull(user);
+        this.isOwner = Boolean.FALSE;
     }
 
     private Participant(Room room, User user, Boolean isOwner) {

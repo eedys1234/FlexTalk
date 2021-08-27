@@ -12,6 +12,7 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 import static java.util.stream.Collectors.toList;
 
@@ -76,7 +77,7 @@ public class Room extends BaseEntity {
      */
     private void appoint(User creator) {
         this.creator = creator;
-        invite(creator);
+        invite(creator, user -> Participant.of(this, user, true));
     }
 
     /**
@@ -107,7 +108,7 @@ public class Room extends BaseEntity {
      * @throws IllegalStateException 채팅방을 생성할 때 제한된 인원에 도달했을 경우
      * @throws IllegalArgumentException 초대하고자하는 사용자가 이미 채팅방에 참여했을 경우
      */
-    public Long invite(User user) {
+    private Long invite(User user, Function<User, Participant> function) {
 
         if(isFullParticipant()) {
             throw new IllegalStateException("채팅방 제한인원이 도달하였습니다.");
@@ -117,9 +118,20 @@ public class Room extends BaseEntity {
             throw new IllegalArgumentException("이미 채팅방에 참여하였습니다. userId = " + user.getId());
         }
 
-        Participant participant = Participant.of(this, user);
+        Participant participant = function.apply(user);
         this.participants.add(participant);
         return participant.getId();
+    }
+
+    /**
+     * 채팅방에 사용자를 초대하다
+     * @param user 참여자
+     * @return 참여자 ID
+     * @throws IllegalStateException 채팅방을 생성할 때 제한된 인원에 도달했을 경우
+     * @throws IllegalArgumentException 초대하고자하는 사용자가 이미 채팅방에 참여했을 경우
+     */
+    public Long invite(User user) {
+        return invite(user, invitedUser -> Participant.of(this, invitedUser));
     }
 
     /**
@@ -144,7 +156,7 @@ public class Room extends BaseEntity {
      * @throws IllegalStateException 채팅방 인원이 존재하지 않을경우
      * @throws IllegalArgumentException 떠나고자 하는 참여자가 채팅방에 참여자가 아닐경우
      */
-    public void leave(Participant leaveParticipant) {
+    public Long leave(Participant leaveParticipant) {
 
         if (isEmptyParticipant()) {
             throw new IllegalStateException("채팅방에는 최소 1명의 참여자가 존재해야합니다. roomId = " + this.id);
@@ -157,6 +169,25 @@ public class Room extends BaseEntity {
         this.participants = this.participants.stream()
                 .filter(participant -> !participant.equals(leaveParticipant))
                 .collect(toList());
+
+        return leaveParticipant.getId();
+    }
+
+    /**
+     * 사용자가 채팅방에 떠나다
+     * @param leaveParticipants 채팅방을 떠나고자 하는 참여자들
+     * @throws IllegalStateException 채팅방 인원이 존재하지 않을경우
+     * @throws IllegalArgumentException 떠나고자 하는 참여자가 채팅방에 참여자가 아닐경우
+     */
+    public List<Long> leave(List<Participant> leaveParticipants) {
+
+        List<Long> participantIds = new ArrayList<>();
+
+        for(Participant participant : participants) {
+            participantIds.add(leave(participant));
+        }
+
+        return participantIds;
     }
 
     /**

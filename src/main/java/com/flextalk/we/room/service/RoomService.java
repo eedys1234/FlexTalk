@@ -7,6 +7,7 @@ import com.flextalk.we.room.dto.RoomResponseDto;
 import com.flextalk.we.room.dto.RoomSaveRequestDto;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
+import com.flextalk.we.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,8 @@ import static java.util.stream.Collectors.toList;
 public class RoomService {
 
     private final RoomRepository roomRepository;
-    private final UserRepository userRepository;
+//    private final UserRepository userRepository;
+    private final UserService userService;
     private final RoomCacheService roomCacheService;
 
 
@@ -36,8 +38,7 @@ public class RoomService {
     @Transactional
     public Long createRoom(Long userId, RoomSaveRequestDto roomSaveRequestDto) {
 
-        User user = userRepository.findOne(userId)
-                .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));
+        final User user = userService.findUser(userId);
 
         return roomRepository.save(roomSaveRequestDto.toEntity(user)).getId();
     }
@@ -52,8 +53,7 @@ public class RoomService {
     @Transactional
     public Long deleteRoom(Long userId, Long roomId) {
 
-        User user = userRepository.findOne(userId)
-                .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));
+        final User user = userService.findUser(userId);
 
         Room room = roomRepository.findOne(roomId)
                 .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
@@ -75,8 +75,7 @@ public class RoomService {
     @Transactional(readOnly = true)
     public List<RoomResponseDto> getRooms(Long userId) {
 
-        User user = userRepository.findOne(userId)
-                .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));
+        final User user = userService.findUser(userId);
 
         List<Room> rooms = roomCacheService.getRooms(user);
 
@@ -97,8 +96,7 @@ public class RoomService {
     @Transactional
     public Long addBookMarkToRoom(Long userId, Long roomId) {
 
-        User user = userRepository.findOne(userId)
-                .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));
+        final User user = userService.findUser(userId);
 
         Room room = roomRepository.findOneWithDetailInfo(roomId)
                 .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
@@ -119,8 +117,7 @@ public class RoomService {
     @Transactional
     public Long deleteBookMarkToRoom(Long userId, Long roomId) {
 
-        User user = userRepository.findOne(userId)
-                .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));
+        final User user = userService.findUser(userId);
 
         Room room = roomRepository.findOneWithDetailInfo(roomId)
                 .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
@@ -142,8 +139,7 @@ public class RoomService {
     @Transactional
     public Long addAlarmToRoom(Long userId, Long roomId) {
 
-        User user = userRepository.findOne(userId)
-                .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));
+        final User user = userService.findUser(userId);
 
         Room room = roomRepository.findOneWithDetailInfo(roomId)
                 .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
@@ -164,8 +160,7 @@ public class RoomService {
     @Transactional
     public Long deleteAlarmToRoom(Long userId, Long roomId) {
 
-        User user = userRepository.findOne(userId)
-                .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다. userId = " + userId));
+        final User user = userService.findUser(userId);
 
         Room room = roomRepository.findOneWithDetailInfo(roomId)
                 .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
@@ -173,5 +168,19 @@ public class RoomService {
 
         room.deleteAlarm(user);
         return room.getId();
+    }
+
+
+    @Transactional(readOnly = true)
+    public Room findRoom(final Long roomId) {
+        return roomRepository.findOne(roomId)
+                .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
+    }
+
+    @Transactional(readOnly = true)
+    public Room findRoomAddedAddiction(final Long roomId) {
+        return roomRepository.findOneWithDetailInfo(roomId)
+                .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
+
     }
 }

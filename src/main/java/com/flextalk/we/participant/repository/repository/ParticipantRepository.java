@@ -47,10 +47,23 @@ public class ParticipantRepository {
 
     public Optional<Participant> findOne(Long participantId) {
         return Optional.ofNullable(
-                queryFactory.select(participant)
-                    .from(participant)
+                queryFactory.selectFrom(participant)
                     .where(participant.id.eq(participantId))
                     .fetchOne()
         );
+    }
+
+    public Optional<Participant> findOwner(Long participantId) {
+        return Optional.ofNullable(
+                queryFactory.selectFrom(participant)
+                    .where(participant.id.eq(participantId), participant.isOwner.isTrue())
+                    .fetchOne()
+        );
+    }
+
+    public List<Participant> findByIds(List<Long> participantIds) {
+        return queryFactory.selectFrom(participant)
+                .where(participant.id.in(participantIds))
+                .fetch();
     }
 }

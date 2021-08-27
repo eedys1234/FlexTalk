@@ -8,6 +8,7 @@ import com.flextalk.we.room.dto.RoomSaveRequestDto;
 import com.flextalk.we.user.cmmn.MockUserFactory;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
+import com.flextalk.we.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,9 @@ public class RoomServiceTest {
 
     @Mock
     private RoomRepository roomRepository;
+
+    @Mock
+    private UserService userService;
 
     @Mock
     private UserRepository userRepository;
@@ -86,7 +90,7 @@ public class RoomServiceTest {
         Long roomId = 1L;
         ReflectionTestUtils.setField(room, "id", roomId);
 
-        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(user).when(userService).findUser(anyLong());
         doReturn(room).when(roomRepository).save(any(Room.class));
 
         //when
@@ -96,7 +100,7 @@ public class RoomServiceTest {
         assertThat(createdRoomId, is(room.getId()));
 
         //verify
-        verify(userRepository, times(1)).findOne(anyLong());
+        verify(userService, times(1)).findUser(anyLong());
         verify(roomRepository, times(1)).save(any(Room.class));
     }
 
@@ -111,7 +115,7 @@ public class RoomServiceTest {
         Long roomId = 1L;
         ReflectionTestUtils.setField(room, "id", roomId);
 
-        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(user).when(userService).findUser(anyLong());
         doReturn(Optional.ofNullable(room)).when(roomRepository).findOne(anyLong());
         doReturn(room).when(roomRepository).save(any(Room.class));
 
@@ -124,7 +128,7 @@ public class RoomServiceTest {
         assertThat(findRoom.getIsDelete(), is(Boolean.TRUE));
 
         //verify
-        verify(userRepository, times(1)).findOne(anyLong());
+        verify(userService, times(1)).findUser(anyLong());
         verify(roomRepository, times(2)).findOne(anyLong());
         verify(roomRepository, times(1)).save(any(Room.class));
     }
@@ -138,7 +142,7 @@ public class RoomServiceTest {
         MockRoomFactory mockRoomFactory = new MockRoomFactory(user);
         List<Room> rooms = mockRoomFactory.createList();
 
-        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(user).when(userService).findUser(anyLong());
         doReturn(rooms).when(roomCacheService).getRooms(any(User.class));
 
         //when
@@ -150,7 +154,7 @@ public class RoomServiceTest {
                 equalTo(rooms.stream().map(Room::getId).collect(toList())));
 
         //verify
-        verify(userRepository, times(1)).findOne(anyLong());
+        verify(userService, times(1)).findUser(anyLong());
         verify(roomCacheService, times(1)).getRooms(any(User.class));
     }
 
@@ -164,7 +168,7 @@ public class RoomServiceTest {
         Long roomId = 1L;
         ReflectionTestUtils.setField(room, "id", roomId);
 
-        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(user).when(userService).findUser(anyLong());
         doReturn(Optional.ofNullable(room)).when(roomRepository).findOneWithDetailInfo(anyLong());
 
         //when
@@ -175,7 +179,7 @@ public class RoomServiceTest {
         assertThat(room.getRoomBookMarks(), not(empty()));
 
         //verify
-        verify(userRepository, times(1)).findOne(anyLong());
+        verify(userService, times(1)).findUser(anyLong());
         verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
     }
 
@@ -189,7 +193,7 @@ public class RoomServiceTest {
         Long roomId = 1L;
         ReflectionTestUtils.setField(room, "id", roomId);
 
-        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(user).when(userService).findUser(anyLong());
         doReturn(Optional.ofNullable(room)).when(roomRepository).findOneWithDetailInfo(anyLong());
 
         room.addBookMark(user);
@@ -198,7 +202,7 @@ public class RoomServiceTest {
         assertThrows(IllegalArgumentException.class, () -> roomService.addBookMarkToRoom(user.getId(), room.getId()));
 
         //verify
-        verify(userRepository, times(1)).findOne(anyLong());
+        verify(userService, times(1)).findUser(anyLong());
         verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
         verify(room, times(2)).addBookMark(any(User.class));
     }
@@ -214,7 +218,7 @@ public class RoomServiceTest {
         ReflectionTestUtils.setField(room, "id", roomId);
         room.addBookMark(user);
 
-        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(user).when(userService).findUser(anyLong());
         doReturn(Optional.ofNullable(room)).when(roomRepository).findOneWithDetailInfo(anyLong());
 
         //when
@@ -225,7 +229,7 @@ public class RoomServiceTest {
         assertThat(room.getRoomBookMarks(), empty());
 
         //verify
-        verify(userRepository, times(1)).findOne(anyLong());
+        verify(userService, times(1)).findUser(anyLong());
         verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
     }
     
@@ -239,14 +243,14 @@ public class RoomServiceTest {
         Long roomId = 1L;
         ReflectionTestUtils.setField(room, "id", roomId);
 
-        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(user).when(userService).findUser(anyLong());
         doReturn(Optional.ofNullable(room)).when(roomRepository).findOneWithDetailInfo(anyLong());
 
         //when
         assertThrows(IllegalArgumentException.class, () -> roomService.deleteBookMarkToRoom(user.getId(), room.getId()));
 
         //verify
-        verify(userRepository, times(1)).findOne(anyLong());
+        verify(userService, times(1)).findUser(anyLong());
         verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
         verify(room, times(1)).deleteBookMark(any(User.class));
     }
@@ -261,7 +265,7 @@ public class RoomServiceTest {
         Long roomId = 1L;
         ReflectionTestUtils.setField(room, "id", roomId);
 
-        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(user).when(userService).findUser(anyLong());
         doReturn(Optional.ofNullable(room)).when(roomRepository).findOneWithDetailInfo(anyLong());
 
         //when
@@ -272,7 +276,7 @@ public class RoomServiceTest {
         assertThat(room.getRoomAlarms(), not(empty()));
 
         //verify
-        verify(userRepository, times(1)).findOne(anyLong());
+        verify(userService, times(1)).findUser(anyLong());
         verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
     }
 
@@ -288,14 +292,14 @@ public class RoomServiceTest {
 
         room.addAlarm(user);
 
-        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(user).when(userService).findUser(anyLong());
         doReturn(Optional.ofNullable(room)).when(roomRepository).findOneWithDetailInfo(anyLong());
 
         //when
         assertThrows(IllegalArgumentException.class, () -> roomService.addAlarmToRoom(user.getId(), room.getId()));
 
         //verify
-        verify(userRepository, times(1)).findOne(anyLong());
+        verify(userService, times(1)).findUser(anyLong());
         verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
         verify(room, times(2)).addAlarm(any(User.class));
     }
@@ -312,7 +316,7 @@ public class RoomServiceTest {
 
         room.addAlarm(user);
 
-        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(user).when(userService).findUser(anyLong());
         doReturn(Optional.ofNullable(room)).when(roomRepository).findOneWithDetailInfo(anyLong());
 
         //when
@@ -323,7 +327,7 @@ public class RoomServiceTest {
         assertThat(room.getRoomAlarms(), empty());
 
         //verify
-        verify(userRepository, times(1)).findOne(anyLong());
+        verify(userService, times(1)).findUser(anyLong());
         verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
     }
 
@@ -337,14 +341,14 @@ public class RoomServiceTest {
         Long roomId = 1L;
         ReflectionTestUtils.setField(room, "id", roomId);
 
-        doReturn(Optional.ofNullable(user)).when(userRepository).findOne(anyLong());
+        doReturn(user).when(userService).findUser(anyLong());
         doReturn(Optional.ofNullable(room)).when(roomRepository).findOneWithDetailInfo(anyLong());
 
         //when, then
         assertThrows(IllegalArgumentException.class, () -> roomService.deleteAlarmToRoom(user.getId(), room.getId()));
 
         //verify
-        verify(userRepository, times(1)).findOne(anyLong());
+        verify(userService, times(1)).findUser(anyLong());
         verify(roomRepository, times(1)).findOneWithDetailInfo(anyLong());
         verify(room, times(1)).deleteAlarm(any(User.class));
     }

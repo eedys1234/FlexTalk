@@ -6,9 +6,9 @@ import com.flextalk.we.participant.dto.ParticipantResponseDto;
 import com.flextalk.we.participant.repository.entity.Participant;
 import com.flextalk.we.participant.repository.repository.ParticipantRepository;
 import com.flextalk.we.room.domain.entity.Room;
-import com.flextalk.we.room.domain.repository.RoomRepository;
+import com.flextalk.we.room.service.RoomService;
 import com.flextalk.we.user.domain.entity.User;
-import com.flextalk.we.user.domain.repository.UserRepository;
+import com.flextalk.we.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +23,8 @@ import static java.util.stream.Collectors.toList;
 public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
-    private final RoomRepository roomRepository;
-    private final UserRepository userRepository;
+    private final RoomService roomService;
+    private final UserService userService;
 
     /**
      * 채팅방 참여자 리스트 
@@ -35,8 +35,7 @@ public class ParticipantService {
     @Transactional(readOnly = true)
     public List<ParticipantResponseDto> getParticipantsByRoom(Long roomId) {
 
-        final Room room = roomRepository.findOne(roomId)
-            .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
+        final Room room = roomService.findRoom(roomId);
 
         return participantRepository.findByRoom(room).stream()
                 .map(ParticipantResponseDto::new)
@@ -52,26 +51,12 @@ public class ParticipantService {
     @Transactional
     public List<Long> inviteParticipants(Long roomId, String userIds) {
 
-        /**
-         * 다음 로직이 과연 UserService가 아닌 ParticipantService의 책임인가?
-         * 고민 1) Participant Service에서 UserService, RoomService 호출
-         * 고민 2) Participant Controller에서 호출
-         */
-        String[] splitUserIds = userIds.split(",");
+        final String[] splitUserIds = userIds.split(",");
+        final List<User> users = userService.findUsers(splitUserIds);
 
-        List<User> users = userRepository.findByIds(Arrays.stream(splitUserIds)
-                .map(id -> Long.parseLong(id))
-                .collect(toList()));
+        userService.findMatchingUsers(users, splitUserIds);
 
-        for(String id : splitUserIds)
-        {
-            if(users.stream().noneMatch(user -> id.equals(String.valueOf(user.getId())))) {
-                throw new NotEntityException("사용자가 존재하지 않습니다. userId = " + id);
-            }
-        }
-
-        Room room = roomRepository.findOneWithDetailInfo(roomId)
-                .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
+        final Room room = roomService.findRoomAddedAddiction(roomId);
         
         return room.invite(users);
     }
@@ -89,52 +74,54 @@ public class ParticipantService {
         Participant participant = participantRepository.findOne(participantId)
                 .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
 
-        Room room = roomRepository.findOneWithDetailInfo(roomId)
-                .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
+        final Room room = roomService.findRoomAddedAddiction(roomId);
 
-        room.leave(participant);
-        return participant.getId();
+        return room.leave(participant);
     }
 
     /**
      * 참여자 추방하기
-     * @param roomId
-     * @param ownerParticipantId
-     * @param deportParticipantId
-     * @return
+     * @param roomId 채팅방 ID
+     * @param ownerParticipantId 권한을 가진 참여자 ID
+     * @param deportParticipantIds 추방되는 참여자들의 ID
+     * @throws NotEntityException 권한을 가진 참여자나 권한을 받을 참여자가 존재하지 않을경우
+     * @throws ResourceAccessDeniedException 권한을 가진 참여자가 권한이 없을경우
+     * @return 추방된 참여자 ID
      */
     @Transactional
-    public Long deportParticipant(Long roomId, Long ownerParticipantId, Long deportParticipantId) {
+    public List<Long> deportParticipants(Long roomId, Long ownerParticipantId, String deportParticipantIds) {
 
-        Participant deportParticipant = participantRepository.findOne(deportParticipantId)
-                .orElseThrow(() -> new NotEntityException("추방 당하려는 참여자가 존재하지 않습니다. participantId = " + deportParticipantId));
+        String[] splitDeportParticipantIds = deportParticipantIds.split(",");
+        List<Long> ids = Arrays.stream(splitDeportParticipantIds).map(id -> Long.parseLong(id)).collect(toList());
 
-        Participant roomOwnerParticipant = participantRepository.findOne(ownerParticipantId)
+        List<Participant> deportParticipants = participantRepository.findByIds(ids);
+
+        Participant roomOwner = participantRepository.findOwner(ownerParticipantId)
                 .orElseThrow(() -> new NotEntityException("채팅방 방장이 존재하지 않습니다. participantId = " + ownerParticipantId));
 
-        Room room = roomRepository.findOneWithDetailInfo(roomId)
-                .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
+        final Room room = roomService.findRoomAddedAddiction(roomId);
 
-        if(!roomOwnerParticipant.getIsOwner()) {
+        if(!roomOwner.getIsOwner()) {
             throw new ResourceAccessDeniedException("권한이 존재하지 않습니다.");
         }
 
-        room.leave(deportParticipant);
-        return deportParticipant.getId();
+        return room.leave(deportParticipants);
     }
 
     /**
      * 채팅방 권한을 넘기다
-     * @param ownerParticipantId
-     * @param promoteParticipantId
-     * @return
+     * @param ownerParticipantId 권한을 가진 참여자 ID
+     * @param promoteParticipantId 권한을 받는 참여자 ID
+     * @throws NotEntityException 권한을 가진 참여자나 권한을 받을 참여자가 존재하지 않을경우
+     * @throws ResourceAccessDeniedException 권한을 가진 참여자가 권한이 없을경우
+     * @return 권한을 받는 참여자 ID
      */
     public Long promotePermission(Long ownerParticipantId, Long promoteParticipantId) {
 
         Participant promoteParticipant = participantRepository.findOne(promoteParticipantId)
                 .orElseThrow(() -> new NotEntityException("추방 당하려는 참여자가 존재하지 않습니다. participantId = " + promoteParticipantId));
 
-        Participant roomOwnerParticipant = participantRepository.findOne(ownerParticipantId)
+        Participant roomOwnerParticipant = participantRepository.findOwner(ownerParticipantId)
                 .orElseThrow(() -> new NotEntityException("채팅방 방장이 존재하지 않습니다. participantId = " + ownerParticipantId));
 
         if(!roomOwnerParticipant.getIsOwner()) {
