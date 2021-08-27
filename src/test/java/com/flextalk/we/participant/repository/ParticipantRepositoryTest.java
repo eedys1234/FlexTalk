@@ -139,7 +139,6 @@ public class ParticipantRepositoryTest {
         assertThrows(IllegalArgumentException.class, () -> room.invite(users.get(1)));
     }
 
-
     @DisplayName("특정 채팅방에 참여하고 있는 참여자 리스트 조회")
     @Test
     public void getParticipantsByRoomTest() {

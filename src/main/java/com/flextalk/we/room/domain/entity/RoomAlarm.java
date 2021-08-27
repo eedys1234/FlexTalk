@@ -12,7 +12,7 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "ft_room_alarm", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user", "room"})
+        @UniqueConstraint(columnNames = {"user_id", "room_id"})
 })
 public class RoomAlarm {
 

@@ -15,7 +15,7 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "ft_participant", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"room", "user"})
+        @UniqueConstraint(columnNames = {"room_id", "user_id"})
 })
 @EqualsAndHashCode(of = {"id"}, callSuper = false)
 public class Participant extends BaseEntity {
