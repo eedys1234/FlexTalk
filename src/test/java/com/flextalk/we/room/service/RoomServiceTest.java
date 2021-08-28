@@ -44,22 +44,11 @@ public class RoomServiceTest {
     private UserService userService;
 
     @Mock
-    private UserRepository userRepository;
-
-    @Mock
     private RoomCacheService roomCacheService;
 
-    private MockUserFactory mockUser;
-
-    @BeforeEach
-    public void setup() {
-        mockUser = new MockUserFactory();
-    }
-
     private User getUser() {
-        Long userId = 1L;
-        User user = mockUser.create();
-        ReflectionTestUtils.setField(user, "id", userId);
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User user = mockUserFactory.createAddedId(1L);
         return user;
     }
 
@@ -140,7 +129,10 @@ public class RoomServiceTest {
         //given
         User user = getUser();
         MockRoomFactory mockRoomFactory = new MockRoomFactory(user);
-        List<Room> rooms = mockRoomFactory.createList();
+        List<RoomResponseDto> rooms = mockRoomFactory.createListAddedId().stream().map(
+                room -> new RoomResponseDto(room.getId(), room.getRoomName(), room.getRoomTypeInfo().getRoomType(),
+                        room.getRoomTypeInfo().getRoomLimitCount(), true, false, false)
+        ).collect(toList());
 
         doReturn(user).when(userService).findUser(anyLong());
         doReturn(rooms).when(roomCacheService).getRooms(any(User.class));
@@ -151,7 +143,7 @@ public class RoomServiceTest {
         //then
         assertThat(findRooms.size(), equalTo(rooms.size()));
         assertThat(findRooms.stream().map(RoomResponseDto::getRoomId).collect(toList()),
-                equalTo(rooms.stream().map(Room::getId).collect(toList())));
+                equalTo(rooms.stream().map(RoomResponseDto::getRoomId).collect(toList())));
 
         //verify
         verify(userService, times(1)).findUser(anyLong());
