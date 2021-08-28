@@ -2,6 +2,7 @@ package com.flextalk.we.room.service;
 
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.repository.RoomRepository;
+import com.flextalk.we.room.dto.RoomResponseDto;
 import com.flextalk.we.user.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
@@ -25,7 +26,7 @@ public class RoomCacheService {
      */
     @Transactional(readOnly = true)
     @Cacheable(value = "rooms", key = "#user.id")
-    public List<Room> getRooms(User user) {
+    public List<RoomResponseDto> getRooms(User user) {
         return roomRepository.findByUser(user);
     }
 }

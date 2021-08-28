@@ -4,13 +4,11 @@ import com.flextalk.we.participant.repository.entity.Participant;
 import com.flextalk.we.participant.repository.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
-import com.flextalk.we.room.domain.entity.RoomAlarm;
-import com.flextalk.we.room.domain.entity.RoomBookMark;
 import com.flextalk.we.room.domain.entity.RoomMessageDate;
-import com.flextalk.we.room.domain.repository.RoomAlarmRepository;
-import com.flextalk.we.room.domain.repository.RoomBookMarkRepository;
 import com.flextalk.we.room.domain.repository.RoomMessageDateRepository;
 import com.flextalk.we.room.domain.repository.RoomRepository;
+import com.flextalk.we.room.dto.RoomResponseDto;
+import com.flextalk.we.user.cmmn.MockUserFactory;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,12 +17,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Comparator.*;
 import static java.util.stream.Collectors.toList;
@@ -42,12 +38,6 @@ public class RoomRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private RoomBookMarkRepository roomBookMarkRepository;
-
-    @Autowired
-    private RoomAlarmRepository roomAlarmRepository;
 
     @Autowired
     private RoomMessageDateRepository roomMessageDateRepository;
@@ -115,13 +105,12 @@ public class RoomRepositoryTest {
         }
 
         //when
-        List<Room> sortedRooms = roomRepository.findByUser(registeredUser);
+        List<RoomResponseDto> sortedRooms = roomRepository.findByUser(registeredUser);
 
         //then
         assertThat(sortedRooms.size(), equalTo(rooms.size()));
-        assertThat(sortedRooms, equalTo(rooms.stream()
-                .sorted(comparing(Room::getId))
-                .collect(toList())));
+        assertThat(sortedRooms.stream().map(RoomResponseDto::getRoomId).collect(toList()),
+                equalTo(rooms.stream().sorted(comparing(Room::getId)).map(Room::getId).collect(toList())));
     }
 
     @DisplayName("채팅방 삭제 시 참여자 정보, 최근 메시지 일자, 즐겨찾기, 알람 삭제 테스트")
@@ -129,14 +118,24 @@ public class RoomRepositoryTest {
     public void deleteRoomTest() {
 
         //given
-        MockRoomFactory mockRoom = new MockRoomFactory(registeredUser);
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.create();
+        userRepository.save(roomCreator);
 
+        MockRoomFactory mockRoom = new MockRoomFactory(roomCreator);
         String roomName = "TEST 채팅방1";
         String roomType = "NORMAL";
         int roomLimitCount = 2;
         Room room = mockRoom.create(roomName, roomType, roomLimitCount);
-        room.addAlarm(registeredUser);
-        room.addBookMark(registeredUser);
+
+        User invitedUser = mockUserFactory.create();
+        room.invite(invitedUser);
+
+        Participant participant = room.participants().stream()
+                .filter(part -> part.isParticipant(invitedUser))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+
         room.updateRecentDate();
 
         Room createdRoom = roomRepository.save(room);
@@ -149,14 +148,10 @@ public class RoomRepositoryTest {
         //then
         Optional<Room> findRoom = roomRepository.findOne(roomId);
         Optional<RoomMessageDate> findRoomMessageDates = roomMessageDateRepository.findByRoomId(room);
-        List<RoomBookMark> findBookMarks = roomBookMarkRepository.findByUser(registeredUser);
-        List<RoomAlarm> findAlarms = roomAlarmRepository.findByUser(registeredUser);
         List<Participant> findParticipants = participantRepository.findByUser(registeredUser);
 
         assertThat(resValue, is(1L));
         assertThat(findRoom, equalTo(Optional.empty()));
-        assertThat(findAlarms.size(), equalTo(0));
-        assertThat(findBookMarks.size(), equalTo(0));
         assertThat(findParticipants.size(), equalTo(0));
         assertThat(findRoomMessageDates, equalTo(Optional.empty()));
     }

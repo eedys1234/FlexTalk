@@ -1,6 +1,7 @@
 package com.flextalk.we.message.domain.entity;
 
 import com.flextalk.we.cmmn.entity.BaseEntity;
+import com.flextalk.we.participant.repository.entity.Participant;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.user.domain.entity.User;
 import lombok.AccessLevel;
@@ -34,8 +35,8 @@ public class Message extends BaseEntity {
     private Room room;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "participant_id")
+    private Participant participant;
 
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
     private List<MessageRead> messageReads = new ArrayList<>();
@@ -54,36 +55,37 @@ public class Message extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "message", cascade = CascadeType.ALL)
     private MessageFile messageFile;
 
-    private Message(User user, Room room, String content) {
-        this.user = Objects.requireNonNull(user);
+    private Message(Participant participant, Room room, String content, String messageType) {
+        this.participant = Objects.requireNonNull(participant);
         this.room = Objects.requireNonNull(room);
         this.content = Objects.requireNonNull(content);
+        this.messageType = MessageType.valueOf(Objects.requireNonNull(messageType));
     }
 
     /**
      * 메시지 생성함수
-     * @param user 메시지 보낸 사용자
+     * @param participant 메시지 보낸 참여자
      * @param room 메시지가 발생한 채팅방
      * @param content 메시지 내용
      * @return 메시지
      */
-    public static Message create(User user, Room room, String content) {
-        Message message = new Message(user, room, content);
+    public static Message create(Participant participant, Room room, String content, String messageType) {
+        Message message = new Message(participant, room, content, messageType);
         return message;
     }
     
     /**
      * 메시지 읽음
-     * @param user 메시지를 보낸 사용자를 제외한 사용자
-     * @throws IllegalArgumentException 메시지를 보낸 사용자가 메시지를 읽음
+     * @param otherParticipant 메시지를 보낸 사용자를 제외한 참여자
+     * @throws IllegalArgumentException 메시지를 보낸 참여자가 메시지를 읽음
      */
-    public void read(User user) {
+    public void read(Participant otherParticipant) {
 
-        if(user.equals(this.user)) {
-            throw new IllegalArgumentException("메시지를 보낸 사용자입니다. userId = " + user.getId());
+        if(otherParticipant.equals(this.participant)) {
+            throw new IllegalArgumentException("메시지를 보낸 사용자입니다. userId = " + otherParticipant.getId());
         }
 
-        MessageRead messageRead = MessageRead.of(user, this.room, this);
+        MessageRead messageRead = MessageRead.of(otherParticipant, this.room, this);
         this.messageReads.add(messageRead);
     }
 

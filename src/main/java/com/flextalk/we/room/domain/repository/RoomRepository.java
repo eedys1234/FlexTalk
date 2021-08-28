@@ -1,7 +1,9 @@
 package com.flextalk.we.room.domain.repository;
 
 import com.flextalk.we.room.domain.entity.Room;
+import com.flextalk.we.room.dto.RoomResponseDto;
 import com.flextalk.we.user.domain.entity.User;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -12,8 +14,6 @@ import java.util.Optional;
 
 import static com.flextalk.we.participant.repository.entity.QParticipant.*;
 import static com.flextalk.we.room.domain.entity.QRoom.room;
-import static com.flextalk.we.room.domain.entity.QRoomAlarm.roomAlarm;
-import static com.flextalk.we.room.domain.entity.QRoomBookMark.roomBookMark;
 
 @Repository
 @RequiredArgsConstructor
@@ -34,13 +34,13 @@ public class RoomRepository {
      * @param user 사용자
      * @return 사용자의 채팅방 리스트
      */
-    public List<Room> findByUser(User user) {
-        return queryFactory.select(room)
+    public List<RoomResponseDto> findByUser(User user) {
+        return queryFactory.select(Projections.constructor(RoomResponseDto.class,
+                    room.id, room.roomName, room.roomTypeInfo.roomType, room.roomTypeInfo.roomLimitCount,
+                    participant.isAlarm, participant.isBookMark, participant.isOwner
+                ))
                 .from(room)
                 .innerJoin(room.participants, participant)
-                .leftJoin(room.roomBookMarks, roomBookMark)
-                .leftJoin(room.roomAlarms, roomAlarm)
-                .fetchJoin()
                 .where(participant.user.eq(user))
                 .orderBy(room.id.asc())
                 .fetch();
@@ -57,8 +57,6 @@ public class RoomRepository {
                 queryFactory.select(room)
                 .from(room)
                 .innerJoin(room.participants, participant)
-                .leftJoin(room.roomBookMarks, roomBookMark)
-                .leftJoin(room.roomAlarms, roomAlarm)
                 .fetchJoin()
                 .where(room.id.eq(id))
                 .fetchOne()

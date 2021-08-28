@@ -40,12 +40,6 @@ public class Room extends BaseEntity {
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL)
     private List<Participant> participants = new ArrayList<>();
 
-    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL)
-    private List<RoomBookMark> roomBookMarks = new ArrayList<>();
-
-    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL)
-    private List<RoomAlarm> roomAlarms = new ArrayList<>();
-
     @OneToOne(mappedBy = "room", cascade = CascadeType.ALL)
     private RoomMessageDate roomMessageDate;
 
@@ -131,7 +125,7 @@ public class Room extends BaseEntity {
      * @throws IllegalArgumentException 초대하고자하는 사용자가 이미 채팅방에 참여했을 경우
      */
     public Long invite(User user) {
-        return invite(user, invitedUser -> Participant.of(this, invitedUser));
+        return invite(user, invitedUser -> Participant.of(this, invitedUser, false));
     }
 
     /**
@@ -162,7 +156,7 @@ public class Room extends BaseEntity {
             throw new IllegalStateException("채팅방에는 최소 1명의 참여자가 존재해야합니다. roomId = " + this.id);
         }
 
-        if (!matchParticipant(leaveParticipant)) {
+        if (!matchReturnBoolean(leaveParticipant)) {
             throw new IllegalArgumentException("채팅방의 참여자가 아닙니다. participantId = " + leaveParticipant.getId());
         }
 
@@ -183,7 +177,7 @@ public class Room extends BaseEntity {
 
         List<Long> participantIds = new ArrayList<>();
 
-        for(Participant participant : participants) {
+        for(Participant participant : leaveParticipants) {
             participantIds.add(leave(participant));
         }
 
@@ -231,107 +225,109 @@ public class Room extends BaseEntity {
      * @return 참여 여부
      * @throws IllegalArgumentException 채팅방에 참여자가 아닐경우
      */
-    private boolean matchParticipant(Participant otherParticipant) {
+    private boolean matchReturnBoolean(Participant otherParticipant) {
         return this.participants.stream()
                 .anyMatch(participant -> participant.equals(otherParticipant));
     }
 
     /**
-     * 채팅방 즐겨찾기 등록
-     * @param user 즐겨찾기 하는 참여자
-     * @throws IllegalStateException 채팅방에 참여자가 한명도 없을 시
+     * 채팅방의 참여자와 일치하는 참여자 여부
+     * @param participant 참여자
+     * @return 참여자
+     * @throws IllegalArgumentException 채팅방에 참여자가 아닐경우
      */
-    public void addBookMark(User user) {
+    private Participant matchReturnParticipant(Participant participant) {
+        return this.participants.stream()
+                .filter(part -> part.equals(participant))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("채팅방의 참여자가 아닙니다. participantId = " + participant.getId()));
+    }
+    /**
+     * 채팅방 즐겨찾기 등록
+     * @param addBookmarkParticipant 즐겨찾기 하는 참여자
+     * @throws IllegalStateException 채팅방에 참여자가 한명도 없을 시
+     * @throws IllegalArgumentException 채팅방에 이미 즐겨찾기가 등록되었을 경우
+     */
+    public void addBookMark(Participant addBookmarkParticipant) {
 
         if(isEmptyParticipant()) {
             //인수값이 무엇이든지 실패할경우
             throw new IllegalStateException("채팅방에는 최소 1명의 참여자가 존재해야합니다. roomId = " + this.id);
         }
 
-        if(!matchParticipant(user)) {
-            throw new IllegalArgumentException("채팅방의 참여자가 아닙니다. userId = " + user.getId());
+        Participant participant = matchReturnParticipant(addBookmarkParticipant);
+
+        if(participant.getIsBookMark()) {
+            throw new IllegalArgumentException("채팅방에 즐겨찾기가 되어있습니다. roomId = " + this.id);
         }
 
-        if(matchBookMark(user)) {
-            throw new IllegalArgumentException("이미 즐겨찾기를 등록하였습니다. userId = " + user.getId());
-        }
-
-        RoomBookMark bookMark = RoomBookMark.of(user, this);
-        this.roomBookMarks.add(bookMark);
+        participant.addBookMark();
     }
 
     /**
      * 즐겨찾기 삭제
-     * @param user 즐겨찾기 삭제하려는 사용자
+     * @param delBookMarkParticipant 즐겨찾기 삭제하려는 참여자
+     * @throws IllegalStateException 채팅방에 참여자가 한명도 없을 시
      * @throws IllegalArgumentException 즐겨찾기가 등록되지 않을경우
      */
-    public void deleteBookMark(User user) {
-        if(!matchBookMark(user)) {
-            throw new IllegalArgumentException("채팅방에 즐겨찾기가 등록되지 않았습니다. roomId = " + this.id);
-        }
-
-        this.roomBookMarks = this.roomBookMarks.stream()
-                .filter(book -> !book.getUser().equals(user))
-                .collect(toList());
-    }
-
-    /**
-     * room bookmark matching
-     * @param user 즐겨찾기를 설정하려는 사람
-     * @return 즐겨찾기 설정되었는지 여부
-     */
-    private boolean matchBookMark(User user) {
-        return this.roomBookMarks.stream().anyMatch(book -> book.getUser().equals(user));
-    }
-
-    /**
-     * 채팅방에 알람설정
-     * @param user 알람설정 하는 참여자
-     * @throws IllegalStateException 채팅방에 참여자가 한명도 없을 시
-     */
-    public void addAlarm(User user) {
+    public void deleteBookMark(Participant delBookMarkParticipant) {
 
         if(isEmptyParticipant()) {
             //인수값이 무엇이든지 실패할경우
             throw new IllegalStateException("채팅방에는 최소 1명의 참여자가 존재해야합니다. roomId = " + this.id);
         }
 
-        if(!matchParticipant(user)) {
-            throw new IllegalArgumentException("채팅방의 참여자가 아닙니다. userId = " + user.getId());
-        }
-        
-        if(matchAlarm(user)) {
-            throw new IllegalArgumentException("이미 알람을 설정하였습니다. userId = " + user.getId());
+        Participant participant = matchReturnParticipant(delBookMarkParticipant);
+
+        if(!participant.getIsBookMark()) {
+            throw new IllegalArgumentException("채팅방에 즐겨찾기가 등록되지 않았습니다. roomId = " + this.id);
         }
 
-        RoomAlarm alarm = RoomAlarm.of(user, this);
-        this.roomAlarms.add(alarm);
+        participant.deleteBookMark();
+    }
+
+    /**
+     * 채팅방에 알람설정
+     * @param addAlarmParticipant 알람설정 하는 참여자
+     * @throws IllegalStateException 채팅방에 참여자가 한명도 없을 시
+     * @throws IllegalArgumentException 알람이 이미 설정되었을경우
+     */
+    public void addAlarm(Participant addAlarmParticipant) {
+
+        if(isEmptyParticipant()) {
+            //인수값이 무엇이든지 실패할경우
+            throw new IllegalStateException("채팅방에는 최소 1명의 참여자가 존재해야합니다. roomId = " + this.id);
+        }
+
+        Participant participant = matchReturnParticipant(addAlarmParticipant);
+
+        if(participant.getIsAlarm()) {
+            throw new IllegalArgumentException("이미 알람을 설정하였습니다. participantId = " + participant.getId());
+        }
+
+        participant.addAlarm();
     }
 
     /**
      * 알람 삭제
-     * @param user 알람을 삭제하려는 사용자
+     * @param delAlarmParticipant 알람을 삭제하려는 참여자
+     * @throws IllegalStateException 채팅방에 참여자가 한명도 없을 시
      * @throws IllegalArgumentException 알람이 설정되지 않을경우
      */
-    public void deleteAlarm(User user) {
+    public void deleteAlarm(Participant delAlarmParticipant) {
 
-        if(!matchAlarm(user)) {
+        if(isEmptyParticipant()) {
+            //인수값이 무엇이든지 실패할경우
+            throw new IllegalStateException("채팅방에는 최소 1명의 참여자가 존재해야합니다. roomId = " + this.id);
+        }
+
+        Participant participant = matchReturnParticipant(delAlarmParticipant);
+
+        if(!participant.getIsAlarm()) {
             throw new IllegalArgumentException("채팅방에 알람이 설정되지 않았습니다. roomId = " + this.id);
         }
 
-        this.roomAlarms = this.roomAlarms.stream()
-                .filter(alarm -> !alarm.getUser().equals(user))
-                .collect(toList());
-
-    }
-
-    /**
-     * room alarm matching
-     * @param user 알람을 설정하려는 사람
-     * @return 알람이 설정되었는지 여부
-     */
-    private boolean matchAlarm(User user) {
-        return this.roomAlarms.stream().anyMatch(alarm -> alarm.getUser().equals(user));
+        participant.deleteAlarm();
     }
 
     /**

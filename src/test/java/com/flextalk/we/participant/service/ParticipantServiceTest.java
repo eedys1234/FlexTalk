@@ -26,8 +26,11 @@ import java.util.Optional;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.empty;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -70,7 +73,7 @@ public class ParticipantServiceTest {
         List<Participant> participants = mockParticipantFactory.createList(mockUserFactory.createListAddedId());
 
         doReturn(room).when(roomService).findRoom(anyLong());
-        doReturn(participants).when(participantRepository).findByRoom(any(Room.class));
+        doReturn(participants).when(participantRepository).findByRoom(any());
 
         //when
         List<ParticipantResponseDto> participantsByRoom = participantService.getParticipantsByRoom(room.getId());
@@ -84,7 +87,7 @@ public class ParticipantServiceTest {
 
         //verify
         verify(roomService, times(1)).findRoom(anyLong());
-        verify(participantRepository, times(1)).findByRoom(any(Room.class));
+        verify(participantRepository, times(1)).findByRoom(any());
     }
 
 
@@ -142,7 +145,7 @@ public class ParticipantServiceTest {
         doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
 
         //when
-        Long leaveParticipantId = participantService.leaveParticipant(room.getId(), invitedParticipantId);
+        Long leaveParticipantId = participantService.leaveParticipant(room.getId(), invitedParticipant.getId());
 
         //then
         assertThat(leaveParticipantId, equalTo(invitedParticipantId));
@@ -241,6 +244,304 @@ public class ParticipantServiceTest {
         //verify
         verify(participantRepository, times(1)).findOwner(anyLong());
         verify(participantRepository, times(1)).findOne(anyLong());
+    }
+
+
+    @DisplayName("채팅방에 즐겨찾기 등록 테스트")
+    @Test
+    public void addBookMarkToRoomTest() {
+
+        //given
+        int roomLimitCount = 2;
+        MockUserFactory mockUserFactory = new MockLimitUserFactory();
+        User roomCreator = mockUserFactory.createAddedId(1L);
+        User invitedUser = mockUserFactory.createAddedId(2L);
+
+        Room room = getRoom(roomCreator, roomLimitCount);
+        Long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        room.invite(invitedUser);
+
+        Participant participant  = room.participants().stream()
+                .filter(part -> !part.getIsOwner())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+
+        ReflectionTestUtils.setField(participant, "id", 1L);
+
+        doReturn(Optional.ofNullable(participant)).when(participantRepository).findOne(anyLong());
+        doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
+
+        //when
+        Long addBookMarkRoomId = participantService.addBookMarkToRoom(participant.getId(), room.getId());
+
+        //then
+        assertThat(addBookMarkRoomId, is(room.getId()));
+
+        //verify
+        verify(participantRepository, times(1)).findOne(anyLong());
+        verify(roomService, times(1)).findRoomAddedAddiction(anyLong());
+    }
+
+    @DisplayName("채팅방에 즐겨찾기를 등록한 사용자가 다시 즐겨찾기 등록할 경우 테스트")
+    @Test
+    public void alreadyBookMarkAddToRoomExceptionTest() {
+
+        //given
+        int roomLimitCount = 2;
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.createAddedId(1L);
+        User invitedUser = mockUserFactory.createAddedId(2L);
+        Room room = spy(getRoom(roomCreator, roomLimitCount));
+
+        Long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        room.invite(invitedUser);
+
+        Participant participant  = room.participants().stream()
+                .filter(part -> !part.getIsOwner())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+
+        ReflectionTestUtils.setField(participant, "id", 1L);
+
+        doReturn(Optional.ofNullable(participant)).when(participantRepository).findOne(anyLong());
+        doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
+
+        room.addBookMark(participant);
+
+        //when
+        assertThrows(IllegalArgumentException.class, () -> participantService.addBookMarkToRoom(participant.getId(), room.getId()));
+
+        //verify
+        verify(participantRepository, times(1)).findOne(anyLong());
+        verify(roomService, times(1)).findRoomAddedAddiction(anyLong());
+        verify(room, times(2)).addBookMark(any());
+    }
+
+    @DisplayName("채팅방에 즐겨찾기 삭제")
+    @Test
+    public void deleteBookMarkToRoomTest() {
+
+        //given
+        int roomLimitCount = 2;
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.createAddedId(1L);
+        User invitedUser = mockUserFactory.createAddedId(2L);
+        Room room = getRoom(roomCreator, roomLimitCount);
+
+        Long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        room.invite(invitedUser);
+
+        Participant participant  = room.participants().stream()
+                .filter(part -> !part.getIsOwner())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+
+        ReflectionTestUtils.setField(participant, "id", 1L);
+
+        room.addBookMark(participant);
+
+        doReturn(Optional.ofNullable(participant)).when(participantRepository).findOne(anyLong());
+        doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
+
+        //when
+        Long deleteBookMarkRoomId = participantService.deleteBookMarkToRoom(participant.getId(), room.getId());
+
+        //then
+        assertThat(deleteBookMarkRoomId, equalTo(room.getId()));
+
+        //verify
+        verify(participantRepository, times(1)).findOne(anyLong());
+        verify(roomService, times(1)).findRoomAddedAddiction(anyLong());
+    }
+
+    @DisplayName("채팅방에 등록된 즐겨찾기가 없음에도 즐겨찾기를 삭제할 경우 테스트")
+    @Test
+    public void emptyBookMarkDeleteToRoomExceptionTest() {
+
+        //given
+        int roomLimitCount = 2;
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.createAddedId(1L);
+        User invitedUser = mockUserFactory.createAddedId(2L);
+        Room room = spy(getRoom(roomCreator, roomLimitCount));
+
+        Long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        room.invite(invitedUser);
+
+        Participant participant  = room.participants().stream()
+                .filter(part -> !part.getIsOwner())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+
+        ReflectionTestUtils.setField(participant, "id", 1L);
+
+        ReflectionTestUtils.setField(participant, "id", 1L);
+
+        doReturn(Optional.ofNullable(participant)).when(participantRepository).findOne(anyLong());
+        doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
+
+        //when
+        assertThrows(IllegalArgumentException.class, () -> participantService.deleteBookMarkToRoom(participant.getId(), room.getId()));
+
+        //verify
+        verify(participantRepository, times(1)).findOne(anyLong());
+        verify(roomService, times(1)).findRoomAddedAddiction(anyLong());
+        verify(room, times(1)).deleteBookMark(any());
+    }
+
+    @DisplayName("채팅방에 알람 설정 기능 테스트")
+    @Test
+    public void addAlarmToRoomTest() {
+
+        //given
+        int roomLimitCount = 2;
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.createAddedId(1L);
+        User invitedUser = mockUserFactory.createAddedId(2L);
+        Room room = getRoom(roomCreator, roomLimitCount);
+
+        Long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        room.invite(invitedUser);
+
+        Participant participant  = room.participants().stream()
+                .filter(part -> !part.getIsOwner())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+
+        ReflectionTestUtils.setField(participant, "id", 1L);
+        room.deleteAlarm(participant);
+
+        doReturn(Optional.ofNullable(participant)).when(participantRepository).findOne(anyLong());
+        doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
+
+        //when
+        Long addAlarmToRoomId = participantService.addAlarmToRoom(participant.getId(), room.getId());
+
+        //then
+        assertThat(addAlarmToRoomId, equalTo(addAlarmToRoomId));
+
+        //verify
+        verify(participantRepository, times(1)).findOne(anyLong());
+        verify(roomService, times(1)).findRoomAddedAddiction(anyLong());
+    }
+
+    @DisplayName("채팅방에 설정된 알람이 이미 존재할 경우 테스트")
+    @Test
+    public void alreadyAlarmAddToRoomExceptionTest() {
+
+        //given
+        int roomLimitCount = 2;
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.createAddedId(1L);
+        User invitedUser = mockUserFactory.createAddedId(2L);
+        Room room = spy(getRoom(roomCreator, roomLimitCount));
+
+        Long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        room.invite(invitedUser);
+
+        Participant participant  = room.participants().stream()
+                .filter(part -> !part.getIsOwner())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+
+        ReflectionTestUtils.setField(participant, "id", 1L);
+
+        doReturn(Optional.ofNullable(participant)).when(participantRepository).findOne(anyLong());
+        doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
+
+        //when
+        assertThrows(IllegalArgumentException.class, () -> participantService.addAlarmToRoom(participant.getId(), room.getId()));
+
+        //verify
+        verify(participantRepository, times(1)).findOne(anyLong());
+        verify(roomService, times(1)).findRoomAddedAddiction(anyLong());
+        verify(room, times(1)).addAlarm(any());
+    }
+
+    @DisplayName("채팅방에 설정된 알람을 제거하는 기능 테스트")
+    @Test
+    public void deleteAlarmToRoom() {
+
+        //given
+        int roomLimitCount = 2;
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.createAddedId(1L);
+        User invitedUser = mockUserFactory.createAddedId(2L);
+        Room room = getRoom(roomCreator, roomLimitCount);
+
+        Long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        room.invite(invitedUser);
+
+        Participant participant  = room.participants().stream()
+                .filter(part -> !part.getIsOwner())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+
+        ReflectionTestUtils.setField(participant, "id", 1L);
+
+        doReturn(Optional.ofNullable(participant)).when(participantRepository).findOne(anyLong());
+        doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
+
+        //when
+        Long deleteAlarmToRoomId = participantService.deleteAlarmToRoom(participant.getId(), room.getId());
+
+        //then
+        assertThat(deleteAlarmToRoomId, equalTo(room.getId()));
+
+        //verify
+        verify(participantRepository, times(1)).findOne(anyLong());
+        verify(roomService, times(1)).findRoomAddedAddiction(anyLong());
+    }
+
+    @DisplayName("설정이 제거된 알람을 다시 제거하려할 때 테스트")
+    @Test
+    public void emptyAlarmDeleteToRoomExceptionTest() {
+
+        //given
+        int roomLimitCount = 2;
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.createAddedId(1L);
+        User invitedUser = mockUserFactory.createAddedId(2L);
+        Room room = spy(getRoom(roomCreator, roomLimitCount));
+
+        Long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        room.invite(invitedUser);
+
+        Participant participant  = room.participants().stream()
+                .filter(part -> !part.getIsOwner())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+
+        ReflectionTestUtils.setField(participant, "id", 1L);
+
+        room.deleteAlarm(participant);
+
+        doReturn(Optional.ofNullable(participant)).when(participantRepository).findOne(anyLong());
+        doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
+
+        //when, then
+        assertThrows(IllegalArgumentException.class, () -> participantService.deleteAlarmToRoom(participant.getId(), room.getId()));
+
+        //verify
+        verify(participantRepository, times(1)).findOne(anyLong());
+        verify(roomService, times(1)).findRoomAddedAddiction(anyLong());
+        verify(room, times(2)).deleteAlarm(any());
     }
 
 }

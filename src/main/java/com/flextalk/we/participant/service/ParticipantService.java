@@ -133,4 +133,86 @@ public class ParticipantService {
 
         return promoteParticipant.getId();
     }
+
+    /**
+     * 즐겨찾기 등록
+     * @param participantId 즐겨찾기를 등록하려는 참여자 ID
+     * @param roomId 즐겨찾기를 등록하려는 채팅방 ID
+     * @return 즐겨찾기가 등록된 채팅방 ID
+     * @throws NotEntityException 요청된 정보가 존재하지 않을경우(참여자 | 채팅방)
+     * @throws IllegalStateException 채팅방에 참여자가 존재하지 않을경우
+     * @throws IllegalArgumentException 이미 즐겨찾기가 등록되어있거나 채팅방의 참여자가 아닐경우
+     */
+    @Transactional
+    public Long addBookMarkToRoom(Long participantId, Long roomId) {
+
+        final Participant participant = participantRepository.findOne(participantId)
+                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+
+        final Room room = roomService.findRoomAddedAddiction(roomId);
+
+        room.addBookMark(participant);
+        return room.getId();
+    }
+
+    /**
+     * 즐겨찾기 삭제
+     * @param participantId 즐겨찾기를 삭제하려는 참여자 ID
+     * @param roomId 즐겨찾기가 등록된 채팅방 ID
+     * @return 즐겨찾기가 삭제된 채팅방 ID
+     * @throws NotEntityException 요청된 정보가 존재하지 않을경우(참여자 | 채팅방)
+     * @throws IllegalArgumentException 삭제하려는 채팅방에 삭제하려는 즐겨찾기가 없을경우
+     */
+    @Transactional
+    public Long deleteBookMarkToRoom(Long participantId, Long roomId) {
+
+        final Participant participant = participantRepository.findOne(participantId)
+                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+
+        final Room room = roomService.findRoomAddedAddiction(roomId);
+
+        room.deleteBookMark(participant);
+        return room.getId();
+    }
+
+    /**
+     * 알람 설정
+     * @param participantId 알람을 설정하려는 참여자 ID
+     * @param roomId 알람을 설정하려는 채팅방 ID
+     * @return 알람이 설정된 채팅방 ID
+     * @throws NotEntityException 요청된 정보가 존재하지 않을경우(참여자 | 채팅방)
+     * @throws IllegalStateException 채팅방에 참여자가 존재하지 않을경우
+     * @throws IllegalArgumentException 이미 알람이 설정되어있거나 채팅방의 참여자가 아닐경우
+     */
+    @Transactional
+    public Long addAlarmToRoom(Long participantId, Long roomId) {
+
+        final Participant participant = participantRepository.findOne(participantId)
+                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+
+        final Room room = roomService.findRoomAddedAddiction(roomId);
+
+        room.addAlarm(participant);
+        return room.getId();
+    }
+
+    /**
+     * 알람 삭제
+     * @param participantId 알람을 삭제하려는 참여자 ID
+     * @param roomId 알람이 설정된 채팅방 ID
+     * @return 알람이 삭제된 채팅방 ID
+     * @throws NotEntityException 요청된 정보가 존재하지 않을경우(참여자 | 채팅방)
+     * @throws IllegalArgumentException 알람이 설정되지 않을경우
+     */
+    @Transactional
+    public Long deleteAlarmToRoom(Long participantId, Long roomId) {
+
+        final Participant participant = participantRepository.findOne(participantId)
+                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+
+        final Room room = roomService.findRoomAddedAddiction(roomId);
+
+        room.deleteAlarm(participant);
+        return room.getId();
+    }
 }

@@ -9,8 +9,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Objects;
-
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RoomResponseDto {
@@ -31,13 +29,16 @@ public class RoomResponseDto {
 
     private Boolean isBookMark;
 
-    public RoomResponseDto(Room room) {
-        this.roomId = room.getId();
-        this.roomName = room.getRoomName();
-        this.roomType = room.getRoomTypeInfo().getRoomType().getKey();
-        this.roomLimitCount = room.getRoomTypeInfo().getRoomLimitCount();
-        this.isAlarm = room.getRoomAlarms().isEmpty() ? Boolean.FALSE : Boolean.TRUE;
-        this.isBookMark = room.getRoomBookMarks().isEmpty() ? Boolean.FALSE : Boolean.TRUE;
+    private Boolean isOwner;
+
+    public RoomResponseDto(Long roomId, String roomName, RoomTypeInfo.RoomType roomType, Integer roomLimitCount, Boolean isAlarm, Boolean isBookMark, Boolean isOwner) {
+        this.roomId = roomId;
+        this.roomName = roomName;
+        this.roomType = roomType.getKey();
+        this.roomLimitCount = roomLimitCount;
+        this.isAlarm = isAlarm;
+        this.isBookMark = isBookMark;
+        this.isOwner = isOwner;
     }
 
 }

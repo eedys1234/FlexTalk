@@ -36,15 +36,44 @@ public class Participant extends BaseEntity {
     @Column(name = "is_owner")
     private Boolean isOwner;
 
+    @Column(name = "is_bookmark")
+    private Boolean isBookMark;
+
+    @Column(name = "is_alarm")
+    private Boolean isAlarm;
+
     private Participant(Room room, User user) {
         this.room = Objects.requireNonNull(room);
         this.user = Objects.requireNonNull(user);
         this.isOwner = Boolean.FALSE;
+        this.isBookMark = Boolean.FALSE;
+        this.isAlarm = Boolean.TRUE;
     }
 
     private Participant(Room room, User user, Boolean isOwner) {
         this(room, user);
         this.isOwner = isOwner;
+    }
+
+
+    public boolean addBookMark() {
+        this.isBookMark = Boolean.TRUE;
+        return true;
+    }
+
+    public boolean deleteBookMark() {
+        this.isBookMark = Boolean.FALSE;
+        return true;
+    }
+
+    public boolean addAlarm() {
+        this.isAlarm = Boolean.TRUE;
+        return true;
+    }
+
+    public boolean deleteAlarm() {
+        this.isAlarm = Boolean.FALSE;
+        return true;
     }
 
     public static Participant of(Room room, User user) {
@@ -56,11 +85,11 @@ public class Participant extends BaseEntity {
     }
 
     public void assignOwner() {
-        this.isOwner = true;
+        this.isOwner = Boolean.TRUE;
     }
 
     public void resign() {
-        this.isOwner = false;
+        this.isOwner = Boolean.FALSE;
     }
 
     public boolean isParticipant(User user) {
