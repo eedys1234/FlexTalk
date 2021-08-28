@@ -26,10 +26,10 @@ public class MessageReadRepository {
         return messageRead;
     }
 
-    public List<MessageReadDto> findByMessages(List<Message> messages) {
+    public List<MessageReadDto> findByMessages(List<Long> messageIds) {
         return queryFactory.select(Projections.constructor(MessageReadDto.class, messageRead.message.id, messageRead.count()))
                 .from(messageRead)
-                .where(messageRead.message.in(messages))
+                .where(messageRead.message.id.in(messageIds))
                 .groupBy(messageRead.message.id)
                 .orderBy(OrderByNull.DEFAULT)
                 .fetch();

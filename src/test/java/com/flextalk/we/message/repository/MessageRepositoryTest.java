@@ -345,7 +345,10 @@ public class MessageRepositoryTest {
         messages.add(sendMessageC);
         messages.add(sendMessageD);
 
-        List<MessageReadDto> messageReads = messageReadRepository.findByMessages(messages);
+        List<MessageReadDto> messageReads = messageReadRepository.findByMessages(
+                messages.stream()
+                        .map(Message::getId)
+                        .collect(toList()));
 
         //then
         assertThat(messageReads.size(), equalTo(messages.subList(0, 3).size()));

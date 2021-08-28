@@ -107,9 +107,10 @@ public class Message extends BaseEntity {
     /**
      * 메시지 읽음
      * @param otherParticipant 메시지를 보낸 사용자를 제외한 참여자
+     * @return Message ID
      * @throws IllegalArgumentException 메시지를 보낸 참여자가 메시지를 읽음
      */
-    public void read(Participant otherParticipant) {
+    public Long read(Participant otherParticipant) {
 
         if(otherParticipant.equals(this.participant)) {
             throw new IllegalArgumentException("메시지를 보낸 사용자입니다. userId = " + otherParticipant.getId());
@@ -117,6 +118,7 @@ public class Message extends BaseEntity {
 
         MessageRead messageRead = MessageRead.of(otherParticipant, this);
         this.messageReads.add(messageRead);
+        return this.id;
     }
 
     /**
@@ -135,7 +137,7 @@ public class Message extends BaseEntity {
         this.isDelete = true;
     }
 
-    protected enum MessageType {
+    public enum MessageType {
         TEXT,
         FILE
     }

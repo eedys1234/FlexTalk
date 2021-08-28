@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.Optional;
 
 import static com.flextalk.we.message.domain.entity.QMessage.message;
 import static com.flextalk.we.message.domain.entity.QMessageFile.messageFile;
@@ -33,5 +34,13 @@ public class MessageRepository {
                 .offset(offset)
                 .orderBy(message.createDt.desc())
                 .fetch();
+    }
+
+    public Optional<Message> findOne(Long messageId) {
+        return Optional.ofNullable(
+                queryFactory.selectFrom(message)
+                    .where(message.id.eq(messageId))
+                    .fetchOne()
+        );
     }
 }

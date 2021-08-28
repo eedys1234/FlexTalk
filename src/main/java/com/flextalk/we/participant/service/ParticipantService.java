@@ -71,8 +71,7 @@ public class ParticipantService {
     @Transactional
     public Long leaveParticipant(Long roomId, Long participantId) {
 
-        Participant participant = participantRepository.findOne(participantId)
-                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+        final Participant participant = findParticipant(participantId);
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
 
@@ -146,8 +145,7 @@ public class ParticipantService {
     @Transactional
     public Long addBookMarkToRoom(Long participantId, Long roomId) {
 
-        final Participant participant = participantRepository.findOne(participantId)
-                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+        final Participant participant = findParticipant(participantId);
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
 
@@ -166,8 +164,7 @@ public class ParticipantService {
     @Transactional
     public Long deleteBookMarkToRoom(Long participantId, Long roomId) {
 
-        final Participant participant = participantRepository.findOne(participantId)
-                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+        final Participant participant = findParticipant(participantId);
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
 
@@ -187,8 +184,7 @@ public class ParticipantService {
     @Transactional
     public Long addAlarmToRoom(Long participantId, Long roomId) {
 
-        final Participant participant = participantRepository.findOne(participantId)
-                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+        final Participant participant = findParticipant(participantId);
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
 
@@ -207,12 +203,17 @@ public class ParticipantService {
     @Transactional
     public Long deleteAlarmToRoom(Long participantId, Long roomId) {
 
-        final Participant participant = participantRepository.findOne(participantId)
-                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+        final Participant participant = findParticipant(participantId);
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
 
         room.deleteAlarm(participant);
         return room.getId();
+    }
+
+    @Transactional(readOnly = true)
+    public Participant findParticipant(Long participantId) {
+        return participantRepository.findOne(participantId)
+                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
     }
 }
