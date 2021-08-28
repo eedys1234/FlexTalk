@@ -2,6 +2,7 @@ package com.flextalk.we.room.cmmn;
 
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.user.domain.entity.User;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,5 +37,16 @@ public class MockRoomFactory {
         return Arrays.stream(roomInfo)
                 .map(info -> create(info[0], info[1], Integer.parseInt(info[2])))
                 .collect(toList());
+    }
+
+    public List<Room> createListAddedId() {
+        List<Room> rooms = createList();
+        long id = 1L;
+
+        for(Room room : rooms) {
+            ReflectionTestUtils.setField(room, "id", id++);
+        }
+
+        return rooms;
     }
 }
