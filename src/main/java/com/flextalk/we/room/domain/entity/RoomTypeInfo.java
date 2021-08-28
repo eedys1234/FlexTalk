@@ -15,42 +15,54 @@ import java.util.Objects;
 @Embeddable
 public class RoomTypeInfo {
 
-    @Transient
-    private final int MAX_PARTICIPANT_COUNT = 1000;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "room_type", length = 30, nullable = false)
     private RoomType roomType;
 
-    @Column(name = "room_participant_count", length = 4, nullable = false)
-    private Integer roomParticipantCount;
+    @Column(name = "room_limit_count", length = 4, nullable = false)
+    private Integer roomLimitCount;
 
-    public RoomTypeInfo(String roomType, Integer roomParticipantCount) {
+    public RoomTypeInfo(String roomType, Integer roomLimitCount) {
         this.roomType = RoomType.valueOf(Objects.requireNonNull(roomType));
-        this.roomParticipantCount = Objects.requireNonNull(roomParticipantCount);
+        this.roomLimitCount = Objects.isNull(roomLimitCount) ? this.roomType.getDefault_participant_count() : roomLimitCount;
 
-        if(validate(this.roomType, roomParticipantCount)) {
+        validateCreateRoom(this.roomType, this.roomLimitCount);
+    }
+
+    private void validateCreateRoom(RoomType roomType, Integer roomLimitCount) {
+        if(!canCreateRoom(roomType, roomLimitCount)) {
             throw new IllegalArgumentException(
-                    String.format("참여인원이 적절하지 않습니다. roomParticipantCount : %s, roomType : %s", roomParticipantCount, roomType)
+                    String.format("참여인원이 적절하지 않습니다. roomParticipantCount : %s, roomType : %s", roomLimitCount, roomType)
             );
         }
     }
 
-    private boolean validate(RoomType roomType, Integer roomParticipantCount) {
-        if(roomType == RoomType.NORMAL && roomParticipantCount > 1) {
-            return true;
-        }
-        else if(roomParticipantCount > MAX_PARTICIPANT_COUNT) {
-            return true;
-        }
+    private boolean canCreateRoom(RoomType roomType, Integer roomLimitCount) {
 
-        return false;
+        switch (roomType) {
+            case NORMAL : return roomLimitCount <= RoomType.NORMAL.getDefault_participant_count();
+            case GROUP : return roomLimitCount <= RoomType.GROUP.getDefault_participant_count();
+            case OPEN : return roomLimitCount <= RoomType.OPEN.getDefault_participant_count();
+            default :
+                throw new IllegalArgumentException("Unknown Room Type : " + roomType);
+        }
     }
 
-    protected enum RoomType {
-        NORMAL,
-        GROUP,
-        OPEN
+    @Getter
+    public enum RoomType {
+        NORMAL(2),
+        GROUP(1000),
+        OPEN(1000);
+
+        private int default_participant_count;
+
+        RoomType(final int default_participant_count) {
+            this.default_participant_count = default_participant_count;
+        }
+
+        public String getKey() {
+            return name();
+        }
     }
 
 }

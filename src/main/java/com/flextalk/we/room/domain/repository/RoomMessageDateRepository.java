@@ -1,16 +1,12 @@
 package com.flextalk.we.room.domain.repository;
 
-import com.flextalk.we.room.domain.entity.QRoomMessageDate;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.entity.RoomMessageDate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
-import java.util.List;
 import java.util.Optional;
 
 import static com.flextalk.we.room.domain.entity.QRoomMessageDate.roomMessageDate;

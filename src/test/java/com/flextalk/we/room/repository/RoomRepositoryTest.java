@@ -1,15 +1,14 @@
-package com.flextalk.we.room.domain.repository;
+package com.flextalk.we.room.repository;
 
-import com.flextalk.we.participant.cmmn.MockParticipantCollection;
-import com.flextalk.we.participant.domain.entity.Participant;
-import com.flextalk.we.participant.domain.repository.ParticipantRepository;
-import com.flextalk.we.room.cmmn.MockRoomBookMarkCollection;
-import com.flextalk.we.room.cmmn.MockRoomCollection;
-import com.flextalk.we.room.cmmn.MockRoomMessageDateCollection;
+import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.repository.repository.ParticipantRepository;
+import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
-import com.flextalk.we.room.domain.entity.RoomAlarm;
-import com.flextalk.we.room.domain.entity.RoomBookMark;
 import com.flextalk.we.room.domain.entity.RoomMessageDate;
+import com.flextalk.we.room.domain.repository.RoomMessageDateRepository;
+import com.flextalk.we.room.domain.repository.RoomRepository;
+import com.flextalk.we.room.dto.RoomResponseDto;
+import com.flextalk.we.user.cmmn.MockUserFactory;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static java.util.Comparator.*;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -39,12 +40,6 @@ public class RoomRepositoryTest {
     private UserRepository userRepository;
 
     @Autowired
-    private RoomBookMarkRepository roomBookMarkRepository;
-
-    @Autowired
-    private RoomAlarmRepository roomAlarmRepository;
-
-    @Autowired
     private RoomMessageDateRepository roomMessageDateRepository;
 
     @Autowired
@@ -52,22 +47,12 @@ public class RoomRepositoryTest {
 
     private User registeredUser;
 
-    private MockRoomCollection mockRoomCollection;
-    private MockRoomBookMarkCollection mockRoomBookMarkCollection;
-    private MockRoomMessageDateCollection mockRoomMessageDateCollection;
-    private MockParticipantCollection mockParticipantCollection;
-
     @BeforeEach
-    public void fixture() {
+    public void setup() {
         String email = "TEST@gmail.com";
         String password = "TEST1234";
         User user = User.register(email, password);
         registeredUser = userRepository.save(user);
-
-        mockRoomCollection = new MockRoomCollection();
-        mockRoomBookMarkCollection = new MockRoomBookMarkCollection();
-        mockRoomMessageDateCollection = new MockRoomMessageDateCollection();
-        mockParticipantCollection = new MockParticipantCollection();
     }
 
     @DisplayName("채팅방 생성 테스트")
@@ -77,7 +62,7 @@ public class RoomRepositoryTest {
         //given
         String roomName = "사용자1";
         String roomType = "NORMAL";
-        int room_limit_size = 1;
+        int room_limit_size = 2;
 
         //when
         Room room = Room.create(registeredUser, roomName, roomType, room_limit_size);
@@ -106,40 +91,26 @@ public class RoomRepositoryTest {
 
         /**
          * room 10
-         * participant
+         * participant 10명
          * user 1명
-         * bookmark 3
          */
-        //given
-        List<Room> rooms = mockRoomCollection.create(registeredUser);
-        List<Participant> participants = mockParticipantCollection.collect(rooms, registeredUser);
-        LocalDateTime now = LocalDateTime.now().minusHours(1);
-        List<RoomMessageDate> roomMessageDates = mockRoomMessageDateCollection.create(rooms, now, (date) -> date.plusMinutes(1));
 
-        for(Room room : rooms) {
+        //given
+        List<Room> rooms = new MockRoomFactory(registeredUser).createList();
+        LocalDateTime now = LocalDateTime.now().minusHours(1);
+
+        for(Room room : rooms)
+        {
             roomRepository.save(room);
         }
 
-        for(Participant participant : participants) {
-            participantRepository.save(participant);
-        }
-
-        for(RoomMessageDate roomMessageDate : roomMessageDates) {
-            roomMessageDateRepository.save(roomMessageDate);
-        }
-
         //when
-        List<Room> sortedRooms = roomRepository.findByUserId(registeredUser);
+        List<RoomResponseDto> sortedRooms = roomRepository.findByUser(registeredUser);
 
         //then
-        List<Room> expectedRooms = new ArrayList<>();
-
-        for(int j=rooms.size()-1; j>=0; j--) {
-            expectedRooms.add(rooms.get(j));
-        }
-
-        assertThat(sortedRooms.size(), equalTo(expectedRooms.size()));
-        assertThat(sortedRooms, equalTo(expectedRooms));
+        assertThat(sortedRooms.size(), equalTo(rooms.size()));
+        assertThat(sortedRooms.stream().map(RoomResponseDto::getRoomId).collect(toList()),
+                equalTo(rooms.stream().sorted(comparing(Room::getId)).map(Room::getId).collect(toList())));
     }
 
     @DisplayName("채팅방 삭제 시 참여자 정보, 최근 메시지 일자, 즐겨찾기, 알람 삭제 테스트")
@@ -147,11 +118,25 @@ public class RoomRepositoryTest {
     public void deleteRoomTest() {
 
         //given
-        Room room = mockRoomCollection.create(registeredUser).get(0);
-        room.visited(registeredUser);
-        room.setAlarm(registeredUser);
-        room.addBookMark(registeredUser);
-        room.updateRecentMessage();
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.create();
+        userRepository.save(roomCreator);
+
+        MockRoomFactory mockRoom = new MockRoomFactory(roomCreator);
+        String roomName = "TEST 채팅방1";
+        String roomType = "NORMAL";
+        int roomLimitCount = 2;
+        Room room = mockRoom.create(roomName, roomType, roomLimitCount);
+
+        User invitedUser = mockUserFactory.create();
+        room.invite(invitedUser);
+
+        Participant participant = room.participants().stream()
+                .filter(part -> part.isParticipant(invitedUser))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+
+        room.updateRecentDate();
 
         Room createdRoom = roomRepository.save(room);
 
@@ -163,14 +148,10 @@ public class RoomRepositoryTest {
         //then
         Optional<Room> findRoom = roomRepository.findOne(roomId);
         Optional<RoomMessageDate> findRoomMessageDates = roomMessageDateRepository.findByRoomId(room);
-        List<RoomBookMark> findBookMarks = roomBookMarkRepository.findByUserId(registeredUser);
-        List<RoomAlarm> findAlarms = roomAlarmRepository.findByUserId(registeredUser);
-        List<Participant> findParticipants = participantRepository.findByUserId(registeredUser);
+        List<Participant> findParticipants = participantRepository.findByUser(registeredUser);
 
         assertThat(resValue, is(1L));
         assertThat(findRoom, equalTo(Optional.empty()));
-        assertThat(findAlarms.size(), equalTo(0));
-        assertThat(findBookMarks.size(), equalTo(0));
         assertThat(findParticipants.size(), equalTo(0));
         assertThat(findRoomMessageDates, equalTo(Optional.empty()));
     }

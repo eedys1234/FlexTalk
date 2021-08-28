@@ -1,11 +1,16 @@
 package com.flextalk.we.user.domain.repository;
 
+import com.flextalk.we.user.domain.entity.QUser;
 import com.flextalk.we.user.domain.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import java.util.List;
+import java.util.Optional;
+
+import static com.flextalk.we.user.domain.entity.QUser.user;
 
 @Repository
 @RequiredArgsConstructor
@@ -18,4 +23,25 @@ public class UserRepository {
         entityManager.persist(user);
         return user;
     }
+
+    public Optional<User> findOne(Long userId) {
+        return Optional.ofNullable(
+                queryFactory.selectFrom(user)
+                .where(user.id.eq(userId))
+                .fetchOne()
+        );
+    }
+
+    public List<User> findByIds(List<Long> userIds) {
+        return queryFactory.selectFrom(user)
+                .where(user.id.in(userIds))
+                .fetch();
+
+    }
+
+    public List<User> findAll() {
+        return queryFactory.selectFrom(user)
+                .fetch();
+    }
+
 }
