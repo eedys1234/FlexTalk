@@ -27,6 +27,10 @@ public class MockUserFactory {
         return User.register(userInfo[0][0], userInfo[0][1]);
     }
 
+    public User create(String email, String password) {
+        return User.register(email, password);
+    }
+
     public User createAddedId(Long id) {
         User user = create();
         ReflectionTestUtils.setField(user, "id", id);
