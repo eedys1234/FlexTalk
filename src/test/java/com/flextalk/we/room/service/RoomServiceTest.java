@@ -44,21 +44,13 @@ public class RoomServiceTest {
     private UserService userService;
 
     @Mock
-    private UserRepository userRepository;
-
-    @Mock
     private RoomCacheService roomCacheService;
 
-    private MockUserFactory mockUser;
-
-    @BeforeEach
-    public void setup() {
-        mockUser = new MockUserFactory();
-    }
-
     private User getUser() {
+
         Long userId = 1L;
-        User user = mockUser.create();
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User user = mockUserFactory.create();
         ReflectionTestUtils.setField(user, "id", userId);
         return user;
     }
