@@ -45,27 +45,24 @@ public class RoomRepositoryTest {
     @Autowired
     private ParticipantRepository participantRepository;
 
-    private User registeredUser;
-
-    @BeforeEach
-    public void setup() {
-        String email = "TEST@gmail.com";
-        String password = "TEST1234";
-        User user = User.register(email, password);
-        registeredUser = userRepository.save(user);
-    }
 
     @DisplayName("채팅방 생성 테스트")
     @Test
     public void createRoomTest() {
 
         //given
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User user = mockUserFactory.create();
+        userRepository.save(user);
+
         String roomName = "사용자1";
         String roomType = "NORMAL";
-        int room_limit_size = 2;
+        int roomLimitCount = 2;
+
+        MockRoomFactory mockRoomFactory = new MockRoomFactory(user);
 
         //when
-        Room room = Room.create(registeredUser, roomName, roomType, room_limit_size);
+        Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
         Room createdRoom = roomRepository.save(room);
 
         //then
@@ -77,27 +74,30 @@ public class RoomRepositoryTest {
     public void gtRoomParticipantTest() {
 
         //given
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User user = mockUserFactory.create();
+        userRepository.save(user);
+
         String roomName = "사용자1";
         String roomType = "NORMAL";
-        int room_limit_size = 10;
+        int roomLimitCount = 10;
+
+        MockRoomFactory mockRoomFactory = new MockRoomFactory(user);
 
         //then
-        assertThrows(IllegalArgumentException.class, () -> Room.create(registeredUser, roomName, roomType, room_limit_size));
+        assertThrows(IllegalArgumentException.class, () -> mockRoomFactory.create(roomName, roomType, roomLimitCount));
     }
 
     @DisplayName("사용자의 채팅방 리스트 가져오기")
     @Test
     public void findUserRoomsTest() {
 
-        /**
-         * room 10
-         * participant 10명
-         * user 1명
-         */
-
         //given
-        List<Room> rooms = new MockRoomFactory(registeredUser).createList();
-        LocalDateTime now = LocalDateTime.now().minusHours(1);
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User user = mockUserFactory.create();
+        userRepository.save(user);
+
+        List<Room> rooms = new MockRoomFactory(user).createList();
 
         for(Room room : rooms)
         {
@@ -105,7 +105,7 @@ public class RoomRepositoryTest {
         }
 
         //when
-        List<RoomResponseDto> sortedRooms = roomRepository.findByUser(registeredUser);
+        List<RoomResponseDto> sortedRooms = roomRepository.findByUser(user);
 
         //then
         assertThat(sortedRooms.size(), equalTo(rooms.size()));
@@ -131,11 +131,6 @@ public class RoomRepositoryTest {
         User invitedUser = mockUserFactory.create();
         room.invite(invitedUser);
 
-        Participant participant = room.participants().stream()
-                .filter(part -> part.isParticipant(invitedUser))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
-
         room.updateRecentDate();
 
         Room createdRoom = roomRepository.save(room);
@@ -148,7 +143,7 @@ public class RoomRepositoryTest {
         //then
         Optional<Room> findRoom = roomRepository.findOne(roomId);
         Optional<RoomMessageDate> findRoomMessageDates = roomMessageDateRepository.findByRoomId(room);
-        List<Participant> findParticipants = participantRepository.findByUser(registeredUser);
+        List<Participant> findParticipants = participantRepository.findByUser(roomCreator);
 
         assertThat(resValue, is(1L));
         assertThat(findRoom, equalTo(Optional.empty()));
