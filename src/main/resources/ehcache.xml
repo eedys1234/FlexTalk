@@ -14,4 +14,15 @@
         <persistence strategy="localTempSwap" />
     </cache>
 
+    <cache name="participants"
+           maxEntriesLocalHeap="10000"
+           maxEntriesLocalDisk="1000"
+           eternal="false"
+           diskSpoolBufferSizeMB="20"
+           memoryStoreEvictionPolicy="LFU"
+           transactionalMode="off">
+        <persistence strategy="localTempSwap" />
+    </cache>
+
+
 </ehcache>

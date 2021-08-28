@@ -1,5 +1,6 @@
 package com.flextalk.we.room.service;
 
+import com.flextalk.we.cmmn.util.CacheNames;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.repository.RoomRepository;
 import com.flextalk.we.room.dto.RoomResponseDto;
@@ -25,7 +26,7 @@ public class RoomCacheService {
      * @return
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "rooms", key = "#user.id")
+    @Cacheable(cacheNames = CacheNames.ROOMS, key = "#user.getId()")
     public List<RoomResponseDto> getRooms(User user) {
         return roomRepository.findByUser(user);
     }
