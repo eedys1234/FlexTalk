@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 public class MessageReadDto {
 
     private Long messageId;
-    private int messageReadCount;
+    private Long messageReadCount;
 
-    public MessageReadDto(Long messageId, int messageReadCount) {
+    public MessageReadDto(Long messageId, Long messageReadCount) {
         this.messageId = messageId;
         this.messageReadCount = messageReadCount;
     }
