@@ -1,9 +1,10 @@
 package com.flextalk.we.participant.service;
 
 import com.flextalk.we.participant.cmmn.MockParticipantFactory;
+import com.flextalk.we.participant.cmmn.ParticipantMatcher;
 import com.flextalk.we.participant.dto.ParticipantResponseDto;
-import com.flextalk.we.participant.domain.entity.Participant;
-import com.flextalk.we.participant.domain.repository.ParticipantRepository;
+import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.repository.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.service.RoomService;
@@ -132,18 +133,15 @@ public class ParticipantServiceTest {
         room.invite(invitedUser);
         Long invitedParticipantId = 1L;
 
-        Participant invitedParticipant = room.getParticipants().stream()
-                .filter(Participant::getIsOwner)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("초대된 참여자가 존재하지 않습니다."));
+        Participant roomOwnerParticipant = ParticipantMatcher.matingRoomOwner(room);
 
-        ReflectionTestUtils.setField(invitedParticipant, "id", invitedParticipantId);
+        ReflectionTestUtils.setField(roomOwnerParticipant, "id", invitedParticipantId);
 
-        doReturn(Optional.ofNullable(invitedParticipant)).when(participantRepository).findOne(anyLong());
+        doReturn(Optional.ofNullable(roomOwnerParticipant)).when(participantRepository).findOne(anyLong());
         doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
 
         //when
-        Long leaveParticipantId = participantService.leaveParticipant(room.getId(), invitedParticipant.getId());
+        Long leaveParticipantId = participantService.leaveParticipant(room.getId(), roomOwnerParticipant.getId());
 
         //then
         assertThat(leaveParticipantId, equalTo(invitedParticipantId));
@@ -166,13 +164,10 @@ public class ParticipantServiceTest {
         MockUserFactory extendedUserFactory = new MockLimitUserFactory();
         List<User> users = extendedUserFactory.createListAddedId().subList(0, 999);
 
-        Participant roomOwner = room.participants().stream()
-                .filter(Participant::getIsOwner)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+        Participant roomOwnerParticipant = ParticipantMatcher.matingRoomOwner(room);
 
         long id = 1L;
-        ReflectionTestUtils.setField(roomOwner, "id", id);
+        ReflectionTestUtils.setField(roomOwnerParticipant, "id", id);
 
         room.invite(users);
 
@@ -186,11 +181,11 @@ public class ParticipantServiceTest {
         }
 
         doReturn(participants).when(participantRepository).findByIds(any());
-        doReturn(Optional.ofNullable(roomOwner)).when(participantRepository).findOwner(anyLong());
+        doReturn(Optional.ofNullable(roomOwnerParticipant)).when(participantRepository).findOwner(anyLong());
         doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
 
         //when
-        List<Long> deportParticipants = participantService.deportParticipants(room.getId(), roomOwner.getId(),
+        List<Long> deportParticipants = participantService.deportParticipants(room.getId(), roomOwnerParticipant.getId(),
                 participants.stream().map(part -> String.valueOf(part.getId())).collect(joining(",")));
 
         //then
@@ -213,28 +208,23 @@ public class ParticipantServiceTest {
         User roomCreator = mockUserFactory.createAddedId(0L);
         Room room = getRoom(roomCreator, roomLimitCount);
 
-        Participant roomOwner = room.participants().stream()
-                .filter(Participant::getIsOwner)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+        Participant roomOwnerParticipant = ParticipantMatcher.matingRoomOwner(room);
 
-        ReflectionTestUtils.setField(roomOwner, "id", 1L);
+        ReflectionTestUtils.setField(roomOwnerParticipant, "id", 1L);
 
         User invitedUser = mockUserFactory.createAddedId(1L);
         room.invite(invitedUser);
 
-        Participant promoteParticipant  = room.participants().stream()
-                .filter(part -> !part.getIsOwner())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+        List<Participant> participants = ParticipantMatcher.matchingNotRoomOwner(room);
+        Participant promoteParticipant = participants.get(0);
 
         ReflectionTestUtils.setField(promoteParticipant, "id", 2L);
 
-        doReturn(Optional.ofNullable(roomOwner)).when(participantRepository).findOwner(anyLong());
+        doReturn(Optional.ofNullable(roomOwnerParticipant)).when(participantRepository).findOwner(anyLong());
         doReturn(Optional.ofNullable(promoteParticipant)).when(participantRepository).findOne(anyLong());
 
         //when
-        Long promoteParticipantId = participantService.promotePermission(room.getId(), roomOwner.getId(), promoteParticipant.getId());
+        Long promoteParticipantId = participantService.promotePermission(room.getId(), roomOwnerParticipant.getId(), promoteParticipant.getId());
 
         //then
         assertThat(promoteParticipantId, equalTo(promoteParticipant.getId()));
@@ -261,10 +251,8 @@ public class ParticipantServiceTest {
 
         room.invite(invitedUser);
 
-        Participant participant  = room.participants().stream()
-                .filter(part -> !part.getIsOwner())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+        List<Participant> participants = ParticipantMatcher.matchingNotRoomOwner(room);
+        Participant participant = participants.get(0);
 
         ReflectionTestUtils.setField(participant, "id", 1L);
 
@@ -298,10 +286,8 @@ public class ParticipantServiceTest {
 
         room.invite(invitedUser);
 
-        Participant participant  = room.participants().stream()
-                .filter(part -> !part.getIsOwner())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+        List<Participant> participants = ParticipantMatcher.matchingNotRoomOwner(room);
+        Participant participant = participants.get(0);
 
         ReflectionTestUtils.setField(participant, "id", 1L);
 
@@ -335,10 +321,8 @@ public class ParticipantServiceTest {
 
         room.invite(invitedUser);
 
-        Participant participant  = room.participants().stream()
-                .filter(part -> !part.getIsOwner())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+        List<Participant> participants = ParticipantMatcher.matchingNotRoomOwner(room);
+        Participant participant = participants.get(0);
 
         ReflectionTestUtils.setField(participant, "id", 1L);
 
@@ -374,10 +358,8 @@ public class ParticipantServiceTest {
 
         room.invite(invitedUser);
 
-        Participant participant  = room.participants().stream()
-                .filter(part -> !part.getIsOwner())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+        List<Participant> participants = ParticipantMatcher.matchingNotRoomOwner(room);
+        Participant participant = participants.get(0);
 
         ReflectionTestUtils.setField(participant, "id", 1L);
 
@@ -411,10 +393,8 @@ public class ParticipantServiceTest {
 
         room.invite(invitedUser);
 
-        Participant participant  = room.participants().stream()
-                .filter(part -> !part.getIsOwner())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+        List<Participant> participants = ParticipantMatcher.matchingNotRoomOwner(room);
+        Participant participant = participants.get(0);
 
         ReflectionTestUtils.setField(participant, "id", 1L);
         room.deleteAlarm(participant);
@@ -449,10 +429,8 @@ public class ParticipantServiceTest {
 
         room.invite(invitedUser);
 
-        Participant participant  = room.participants().stream()
-                .filter(part -> !part.getIsOwner())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+        List<Participant> participants = ParticipantMatcher.matchingNotRoomOwner(room);
+        Participant participant = participants.get(0);
 
         ReflectionTestUtils.setField(participant, "id", 1L);
 
@@ -484,10 +462,8 @@ public class ParticipantServiceTest {
 
         room.invite(invitedUser);
 
-        Participant participant  = room.participants().stream()
-                .filter(part -> !part.getIsOwner())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+        List<Participant> participants = ParticipantMatcher.matchingNotRoomOwner(room);
+        Participant participant = participants.get(0);
 
         ReflectionTestUtils.setField(participant, "id", 1L);
 
@@ -521,10 +497,8 @@ public class ParticipantServiceTest {
 
         room.invite(invitedUser);
 
-        Participant participant  = room.participants().stream()
-                .filter(part -> !part.getIsOwner())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("채팅방 생성자가 존재하지 않습니다."));
+        List<Participant> participants = ParticipantMatcher.matchingNotRoomOwner(room);
+        Participant participant = participants.get(0);
 
         ReflectionTestUtils.setField(participant, "id", 1L);
 

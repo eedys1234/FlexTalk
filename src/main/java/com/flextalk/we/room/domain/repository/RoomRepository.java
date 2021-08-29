@@ -12,7 +12,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
-import static com.flextalk.we.participant.domain.entity.QParticipant.*;
+import static com.flextalk.we.participant.repository.entity.QParticipant.*;
 import static com.flextalk.we.room.domain.entity.QRoom.room;
 
 @Repository

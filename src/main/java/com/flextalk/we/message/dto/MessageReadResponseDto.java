@@ -5,12 +5,12 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class MessageReadDto {
+public class MessageReadResponseDto {
 
     private Long messageId;
     private Long messageReadCount;
 
-    public MessageReadDto(Long messageId, Long messageReadCount) {
+    public MessageReadResponseDto(Long messageId, Long messageReadCount) {
         this.messageId = messageId;
         this.messageReadCount = messageReadCount;
     }

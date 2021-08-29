@@ -1,13 +1,19 @@
 package com.flextalk.we.message.repository;
 
 import com.flextalk.we.cmmn.file.FileManager;
+import com.flextalk.we.message.cmmn.MockMessageBulkFactory;
+import com.flextalk.we.message.cmmn.MockMessageFactory;
+import com.flextalk.we.message.cmmn.MockMessageReader;
 import com.flextalk.we.message.domain.entity.Message;
+import com.flextalk.we.message.domain.entity.MessageRead;
 import com.flextalk.we.message.domain.repository.MessageFileRepository;
 import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
-import com.flextalk.we.message.dto.MessageReadDto;
-import com.flextalk.we.participant.domain.entity.Participant;
-import com.flextalk.we.participant.domain.repository.ParticipantRepository;
+import com.flextalk.we.message.dto.MessageReadBulkInsertDto;
+import com.flextalk.we.message.dto.MessageReadResponseDto;
+import com.flextalk.we.participant.cmmn.ParticipantMatcher;
+import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.repository.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.repository.RoomRepository;
@@ -16,6 +22,7 @@ import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,7 +44,7 @@ import static org.mockito.Mockito.*;
 @Transactional
 public class MessageRepositoryTest {
 
-    @Value("{message_file_path}")
+    @Value("${message_file_path}")
     private String messageFilePath;
 
     @Autowired
@@ -71,7 +78,7 @@ public class MessageRepositoryTest {
         userRepository.save(invitedUser);
 
         MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
-        String roomName = "테스트_채팅방";
+        String roomName = "테스트 채팅방";
         String roomType = "GROUP";
         int roomLimitCount = 10;
         Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
@@ -80,8 +87,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant participant = room.participants().stream().filter(part -> part.isParticipant(invitedUser)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+        Participant participant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "TEXT";
@@ -118,8 +124,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant participant = room.participants().stream().filter(part -> part.isParticipant(invitedUser)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+        Participant participant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";
@@ -152,8 +157,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant participant = room.participants().stream().filter(part -> part.isParticipant(invitedUser)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+        Participant participant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";
@@ -193,8 +197,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant participant = room.participants().stream().filter(part -> part.isParticipant(invitedUser)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+        Participant participant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String parentMessageContent = "테스트 채팅입니다.";
         String parentMessageType = "TEXT";
@@ -231,12 +234,8 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant ownerParticipant = room.participants().stream().filter(Participant::getIsOwner).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
-
-        Participant invitedParticipant = room.participants().stream().filter(part -> part.isParticipant(invitedUser)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
-
+        Participant ownerParticipant = ParticipantMatcher.matingRoomOwner(room);
+        Participant invitedParticipant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";
@@ -275,9 +274,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant invitedParticipant = room.participants().stream().filter(part -> part.isParticipant(invitedUser)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
-
+        Participant invitedParticipant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";
@@ -288,6 +285,50 @@ public class MessageRepositoryTest {
 
         //when, then
         assertThrows(IllegalArgumentException.class, () -> sendMessage.read(invitedParticipant));
+    }
+
+    @DisplayName("")
+    @Test
+    public void readMessageTest() {
+
+        //given
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.create("test1@gmail.com", "123!@#DDDDD");
+        User invitedUser = mockUserFactory.create("test2@gmail.com", "123!@#DDDDD");
+
+        userRepository.save(roomCreator);
+        userRepository.save(invitedUser);
+
+        MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
+        String roomName = "테스트 채팅방";
+        String roomType = "NORMAL";
+        int roomLimitCount = 2;
+        Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
+
+        room.invite(invitedUser);
+        roomRepository.save(room);
+
+        Participant roomOwnerParticipant = ParticipantMatcher.matingRoomOwner(room);
+        Participant invitedParticipant = ParticipantMatcher.matchingNotRoomOwner(room).get(0);
+
+        MockMessageFactory mockMessageFactory = new MockMessageBulkFactory(room, invitedParticipant);
+        List<Message> messages = mockMessageFactory.createTextList();
+
+        for(Message message : messages) {
+            messageRepository.save(message);
+        }
+
+        List<MessageReadBulkInsertDto> messageReads = messages.stream()
+                .map(message -> new MessageReadBulkInsertDto(roomOwnerParticipant.getId(), message.getId()))
+                .collect(toList());
+
+        //when
+        messageReadRepository.saveAll(messageReads);
+
+        //then
+        List<MessageRead> allReads = messageReadRepository.findAll();
+        assertThat(allReads.size(), equalTo(messages.size()));
+
     }
 
     @DisplayName("각 메시지에 대한 읽음 개수 가져오기 테스트")
@@ -304,9 +345,10 @@ public class MessageRepositoryTest {
         );
 
         userRepository.save(roomCreator);
-        userRepository.save(invitedUsers.get(0));
-        userRepository.save(invitedUsers.get(1));
-        userRepository.save(invitedUsers.get(2));
+
+        for(User user : invitedUsers) {
+            userRepository.save(user);
+        }
 
         MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
         String roomName = "테스트_채팅방";
@@ -315,52 +357,60 @@ public class MessageRepositoryTest {
         Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
 
         room.invite(invitedUsers);
-
         roomRepository.save(room);
 
-        Participant ownerParticipant = room.participants().stream().filter(Participant::getIsOwner).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+        Participant roomOwnerParticipant = ParticipantMatcher.matingRoomOwner(room);
+        List<Participant> participants = ParticipantMatcher.matchingNotRoomOwner(room);
 
-        List<Participant> participants = room.participants().stream()
-                .filter(part -> !part.getIsOwner())
-                .collect(toList());
+        MockMessageFactory mockMessageFactory = new MockMessageFactory(room, roomOwnerParticipant);
+        List<Message> messages = mockMessageFactory.createTextList();
 
-        String messageContent = "테스트 채팅입니다.";
-        String messageType = "FILE";
-        String orgFileName = "개발자학습로드맵.txt";
+        //전체 참여자 그룹
+        MockMessageReader mockMessageReaderA = new MockMessageReader();
+        mockMessageReaderA.addAll(participants);
 
-        Message sendMessageA = messageRepository.save(Message.create(ownerParticipant, room, messageContent, messageType, messageFilePath, orgFileName));
-        Message sendMessageB = messageRepository.save(Message.create(ownerParticipant, room, messageContent, messageType, messageFilePath, orgFileName));
-        Message sendMessageC = messageRepository.save(Message.create(ownerParticipant, room, messageContent, messageType, messageFilePath, orgFileName));
-        Message sendMessageD = messageRepository.save(Message.create(ownerParticipant, room, messageContent, messageType, messageFilePath, orgFileName));
+        //2명 그룹
+        MockMessageReader mockMessageReaderB = new MockMessageReader();
+        mockMessageReaderB.addAll(participants.subList(0, 2));
 
-        read(sendMessageA, participants); //모두읽음
-        read(sendMessageB, participants.subList(0, 2)); //2명읽음
-        read(sendMessageC, participants.subList(0, 1)); //1명읽음
+        //1명 그룹
+        MockMessageReader mockMessageReaderC = new MockMessageReader();
+        mockMessageReaderC.addAll(participants.subList(0, 1));
 
-        List<Message> messages = new ArrayList<>();
+        List<Message> messagesA = messages.subList(0, 3);
+        List<Message> messagesB = messages.subList(3, 6);
+        List<Message> messagesC = messages.subList(6, 10);
+        List<Long> expectedReads = new ArrayList<>();
 
-        messages.add(sendMessageA);
-        messages.add(sendMessageB);
-        messages.add(sendMessageC);
-        messages.add(sendMessageD);
+        for(Message message : messagesA) {
+            mockMessageReaderA.read(message);
+            expectedReads.add(mockMessageReaderA.participantSize());
+        }
 
-        List<MessageReadDto> messageReads = messageReadRepository.findByMessages(
-                messages.stream()
-                        .map(Message::getId)
-                        .collect(toList()));
+        for(Message message : messagesB) {
+            mockMessageReaderB.read(message);
+            expectedReads.add(mockMessageReaderB.participantSize());
+        }
+
+        for(Message message : messagesC) {
+            mockMessageReaderC.read(message);
+            expectedReads.add(mockMessageReaderC.participantSize());
+        }
+
+        for(Message message : messages) {
+            messageRepository.save(message);
+        }
+
+        List<MessageReadResponseDto> messageReads = messageReadRepository.findByMessages(messages.stream()
+                .map(Message::getId)
+                .collect(toList()));
 
         //then
-        assertThat(messageReads.size(), equalTo(messages.subList(0, 3).size()));
-        assertThat(messageReads.stream().map(MessageReadDto::getMessageReadCount).collect(toList()),
-                contains(3L, 2L, 1L));
+        assertThat(messageReads.size(), equalTo(messages.size()));
+        assertThat(messageReads.stream()
+                        .map(MessageReadResponseDto::getMessageReadCount)
+                        .collect(toList()),
+                equalTo(expectedReads));
     }
-
-    private void read(Message message, List<Participant> participants) {
-        for(Participant participant : participants) {
-            message.read(participant);
-        }
-    }
-
 
 }
