@@ -1,7 +1,7 @@
-package com.flextalk.we.participant.domain;
+package com.flextalk.we.participant.repository;
 
-import com.flextalk.we.participant.domain.entity.Participant;
-import com.flextalk.we.participant.domain.repository.ParticipantRepository;
+import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.repository.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.repository.RoomRepository;

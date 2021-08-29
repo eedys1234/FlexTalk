@@ -1,12 +1,11 @@
 package com.flextalk.we.message.service;
 
-import com.flextalk.we.cmmn.exception.NotEntityException;
 import com.flextalk.we.cmmn.file.FileManager;
 import com.flextalk.we.message.domain.entity.Message;
 import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
 import com.flextalk.we.message.dto.*;
-import com.flextalk.we.participant.domain.entity.Participant;
+import com.flextalk.we.participant.repository.entity.Participant;
 import com.flextalk.we.participant.service.ParticipantService;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.service.RoomService;

@@ -1,7 +1,7 @@
 package com.flextalk.we.message.domain.entity;
 
 import com.flextalk.we.cmmn.entity.BaseEntity;
-import com.flextalk.we.participant.domain.entity.Participant;
+import com.flextalk.we.participant.repository.entity.Participant;
 import com.flextalk.we.room.domain.entity.Room;
 import lombok.AccessLevel;
 import lombok.Getter;

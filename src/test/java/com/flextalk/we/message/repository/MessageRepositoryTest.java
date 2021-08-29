@@ -6,8 +6,9 @@ import com.flextalk.we.message.domain.repository.MessageFileRepository;
 import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
 import com.flextalk.we.message.dto.MessageReadResponseDto;
-import com.flextalk.we.participant.domain.entity.Participant;
-import com.flextalk.we.participant.domain.repository.ParticipantRepository;
+import com.flextalk.we.participant.cmmn.ParticipantMatcher;
+import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.repository.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.repository.RoomRepository;
@@ -71,7 +72,7 @@ public class MessageRepositoryTest {
         userRepository.save(invitedUser);
 
         MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
-        String roomName = "테스트_채팅방";
+        String roomName = "테스트 채팅방";
         String roomType = "GROUP";
         int roomLimitCount = 10;
         Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
@@ -80,8 +81,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant participant = room.participants().stream().filter(part -> part.isParticipant(invitedUser)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+        Participant participant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "TEXT";
@@ -118,8 +118,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant participant = room.participants().stream().filter(part -> part.isParticipant(invitedUser)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+        Participant participant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";
@@ -152,8 +151,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant participant = room.participants().stream().filter(part -> part.isParticipant(invitedUser)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+        Participant participant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";
@@ -193,8 +191,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant participant = room.participants().stream().filter(part -> part.isParticipant(invitedUser)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+        Participant participant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String parentMessageContent = "테스트 채팅입니다.";
         String parentMessageType = "TEXT";
@@ -231,12 +228,8 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant ownerParticipant = room.participants().stream().filter(Participant::getIsOwner).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
-
-        Participant invitedParticipant = room.participants().stream().filter(part -> part.isParticipant(invitedUser)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
-
+        Participant ownerParticipant = ParticipantMatcher.matingRoomOwner(room);
+        Participant invitedParticipant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";
@@ -275,9 +268,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant invitedParticipant = room.participants().stream().filter(part -> part.isParticipant(invitedUser)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
-
+        Participant invitedParticipant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";

@@ -1,7 +1,7 @@
 package com.flextalk.we.participant.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.flextalk.we.participant.domain.entity.Participant;
+import com.flextalk.we.participant.repository.entity.Participant;
 import com.flextalk.we.user.domain.entity.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
