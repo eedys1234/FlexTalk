@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 @Getter
-public class MessageUnReadDto {
+public class MessageUnReadResponseDto {
 
     @JsonProperty(value = "message_id")
     private Long messageId;
@@ -13,7 +13,7 @@ public class MessageUnReadDto {
     private Long messageCount;
 
 
-    public MessageUnReadDto(Long messageId, Long messageCount) {
+    public MessageUnReadResponseDto(Long messageId, Long messageCount) {
         this.messageId = messageId;
         this.messageCount = messageCount;
     }

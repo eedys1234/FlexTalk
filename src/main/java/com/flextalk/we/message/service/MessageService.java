@@ -5,9 +5,7 @@ import com.flextalk.we.cmmn.file.FileManager;
 import com.flextalk.we.message.domain.entity.Message;
 import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
-import com.flextalk.we.message.dto.MessageReadDto;
-import com.flextalk.we.message.dto.MessageSaveRequestDto;
-import com.flextalk.we.message.dto.MessageUnReadDto;
+import com.flextalk.we.message.dto.*;
 import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.participant.service.ParticipantService;
 import com.flextalk.we.room.domain.entity.Room;
@@ -15,6 +13,7 @@ import com.flextalk.we.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,6 +40,7 @@ public class MessageService {
      * @param messageSaveRequestDto 메시지 생성 Dto
      * @return 생성된 메시지 ID
      */
+    @Transactional
     public Long createTextMessage(Long roomId, Long participantId, MessageSaveRequestDto messageSaveRequestDto) {
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
@@ -60,6 +60,7 @@ public class MessageService {
      * @param messageSaveRequestDto 메시지 생성 Dto
      * @return 생성된 메시지 ID
      */
+    @Transactional
     public Long createFileMessage(Long roomId, Long participantId, MessageSaveRequestDto messageSaveRequestDto, String orgFileName, byte[] file) {
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
@@ -84,37 +85,45 @@ public class MessageService {
      * @param messageIds 메시지 's ID
      * @return 메시지 별 안읽은 수
      */
-    public List<MessageUnReadDto> unReadCountMessages(Long roomId, String messageIds) {
+    @Transactional(readOnly = true)
+    public List<MessageUnReadResponseDto> unReadCountMessages(Long roomId, String messageIds) {
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
         final String[] splitMessageIds = messageIds.split(",");
 
         final List<Participant> participants = room.participants();
 
-        List<MessageReadDto> reads = messageReadRepository.findByMessages(Arrays.stream(splitMessageIds)
+        List<MessageReadResponseDto> reads = messageReadRepository.findByMessages(Arrays.stream(splitMessageIds)
                 .map(id -> Long.parseLong(id))
                 .collect(toList()));
 
         return reads.stream()
-                .map(read -> new MessageUnReadDto(read.getMessageId(), participants.size() - read.getMessageReadCount() - 1))
+                .map(read -> new MessageUnReadResponseDto(read.getMessageId(), participants.size() - read.getMessageReadCount() - 1))
                 .collect(toList());
     }
 
     /**
      * 메시지 읽음
-     * @param messageId 메시지 ID
      * @param participantId 참여자 ID
+     * @param messageReadUpdateDto 메시지 ' s ID
      * @return 읽은 메시지 ID
-     * TODO : JDBC Batch 사용해야함
      */
-    public Long readMessage(Long messageId, Long participantId) {
-
-        Message message = messageRepository.findOne(messageId)
-                .orElseThrow(() -> new NotEntityException("메시지가 존재하지 않습니다. messageId=" + messageId));
+    @Transactional
+    public List<Long> readMessage(Long participantId, MessageReadUpdateDto messageReadUpdateDto) {
 
         Participant participant = participantService.findParticipant(participantId);
 
-        return message.read(participant);
+        String[] splitMessageIds = messageReadUpdateDto.getMessageIds().split(",");
+
+        List<MessageReadBulkInsertDto> messageReads = Arrays.stream(splitMessageIds)
+                .map(id -> new MessageReadBulkInsertDto(participantId, Long.parseLong(id)))
+                .collect(toList());
+
+        messageReadRepository.saveAll(messageReads);
+
+        return messageReads.stream()
+                .map(MessageReadBulkInsertDto::getMessageId)
+                .collect(toList());
     }
 
 }

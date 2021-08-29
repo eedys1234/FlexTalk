@@ -5,7 +5,7 @@ import com.flextalk.we.message.domain.entity.Message;
 import com.flextalk.we.message.domain.repository.MessageFileRepository;
 import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
-import com.flextalk.we.message.dto.MessageReadDto;
+import com.flextalk.we.message.dto.MessageReadResponseDto;
 import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.participant.domain.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
@@ -345,14 +345,14 @@ public class MessageRepositoryTest {
         messages.add(sendMessageC);
         messages.add(sendMessageD);
 
-        List<MessageReadDto> messageReads = messageReadRepository.findByMessages(
+        List<MessageReadResponseDto> messageReads = messageReadRepository.findByMessages(
                 messages.stream()
                         .map(Message::getId)
                         .collect(toList()));
 
         //then
         assertThat(messageReads.size(), equalTo(messages.subList(0, 3).size()));
-        assertThat(messageReads.stream().map(MessageReadDto::getMessageReadCount).collect(toList()),
+        assertThat(messageReads.stream().map(MessageReadResponseDto::getMessageReadCount).collect(toList()),
                 contains(3L, 2L, 1L));
     }
 
