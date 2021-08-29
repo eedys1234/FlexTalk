@@ -23,7 +23,7 @@ public class RoomTypeInfo {
     private Integer roomLimitCount;
 
     public RoomTypeInfo(String roomType, Integer roomLimitCount) {
-        this.roomType = RoomType.valueOf(Objects.requireNonNull(roomType));
+        this.roomType = RoomType.valueOf(Objects.requireNonNull(roomType.toUpperCase()));
         this.roomLimitCount = Objects.isNull(roomLimitCount) ? this.roomType.getDefault_participant_count() : roomLimitCount;
 
         validateCreateRoom(this.roomType, this.roomLimitCount);

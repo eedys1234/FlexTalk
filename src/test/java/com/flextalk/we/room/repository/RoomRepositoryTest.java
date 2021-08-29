@@ -1,7 +1,7 @@
 package com.flextalk.we.room.repository;
 
-import com.flextalk.we.participant.repository.entity.Participant;
-import com.flextalk.we.participant.repository.repository.ParticipantRepository;
+import com.flextalk.we.participant.domain.entity.Participant;
+import com.flextalk.we.participant.domain.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.entity.RoomMessageDate;
@@ -11,7 +11,6 @@ import com.flextalk.we.room.dto.RoomResponseDto;
 import com.flextalk.we.user.cmmn.MockUserFactory;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static java.util.Comparator.*;

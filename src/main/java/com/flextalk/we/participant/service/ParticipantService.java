@@ -2,14 +2,18 @@ package com.flextalk.we.participant.service;
 
 import com.flextalk.we.cmmn.exception.NotEntityException;
 import com.flextalk.we.cmmn.exception.ResourceAccessDeniedException;
+import com.flextalk.we.cmmn.util.CacheNames;
 import com.flextalk.we.participant.dto.ParticipantResponseDto;
-import com.flextalk.we.participant.repository.entity.Participant;
-import com.flextalk.we.participant.repository.repository.ParticipantRepository;
+import com.flextalk.we.participant.domain.entity.Participant;
+import com.flextalk.we.participant.domain.repository.ParticipantRepository;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.service.RoomService;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +36,7 @@ public class ParticipantService {
      * @return 채팅방 참여자 리스트
      * @throws NotEntityException 채팅방에 존재하지 않을경우
      */
+    @Cacheable(cacheNames = CacheNames.PARTICIPANTS, key = "#roomId")
     @Transactional(readOnly = true)
     public List<ParticipantResponseDto> getParticipantsByRoom(Long roomId) {
 
@@ -48,6 +53,10 @@ public class ParticipantService {
      * @param userIds 초대되는 사용자들의 ID
      * @return 채팅방에 참여된 참여자들의 ID
      */
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.PARTICIPANTS, key = "#roomId")
+        }
+    )
     @Transactional
     public List<Long> inviteParticipants(Long roomId, String userIds) {
 
@@ -68,11 +77,14 @@ public class ParticipantService {
      * @param participantId 나가는 참여자 ID
      * @return 나가는 참여자 ID
      */
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.PARTICIPANTS, key = "#roomId")
+        }
+    )
     @Transactional
     public Long leaveParticipant(Long roomId, Long participantId) {
 
-        Participant participant = participantRepository.findOne(participantId)
-                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+        final Participant participant = findParticipant(participantId);
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
 
@@ -88,6 +100,10 @@ public class ParticipantService {
      * @throws ResourceAccessDeniedException 권한을 가진 참여자가 권한이 없을경우
      * @return 추방된 참여자 ID
      */
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.PARTICIPANTS, key = "#roomId")
+        }
+    )
     @Transactional
     public List<Long> deportParticipants(Long roomId, Long ownerParticipantId, String deportParticipantIds) {
 
@@ -116,7 +132,12 @@ public class ParticipantService {
      * @throws ResourceAccessDeniedException 권한을 가진 참여자가 권한이 없을경우
      * @return 권한을 받는 참여자 ID
      */
-    public Long promotePermission(Long ownerParticipantId, Long promoteParticipantId) {
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.PARTICIPANTS, key = "#roomId")
+        }
+    )
+    @Transactional
+    public Long promotePermission(Long roomId, Long ownerParticipantId, Long promoteParticipantId) {
 
         Participant promoteParticipant = participantRepository.findOne(promoteParticipantId)
                 .orElseThrow(() -> new NotEntityException("추방 당하려는 참여자가 존재하지 않습니다. participantId = " + promoteParticipantId));
@@ -143,11 +164,15 @@ public class ParticipantService {
      * @throws IllegalStateException 채팅방에 참여자가 존재하지 않을경우
      * @throws IllegalArgumentException 이미 즐겨찾기가 등록되어있거나 채팅방의 참여자가 아닐경우
      */
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.ROOMS, key = "#userId"),
+            @CacheEvict(cacheNames = CacheNames.PARTICIPANTS, key = "#roomId")
+        }
+    )
     @Transactional
-    public Long addBookMarkToRoom(Long participantId, Long roomId) {
+    public Long addBookMarkToParticipant(Long userId, Long participantId, Long roomId) {
 
-        final Participant participant = participantRepository.findOne(participantId)
-                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+        final Participant participant = findParticipant(participantId);
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
 
@@ -163,11 +188,14 @@ public class ParticipantService {
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(참여자 | 채팅방)
      * @throws IllegalArgumentException 삭제하려는 채팅방에 삭제하려는 즐겨찾기가 없을경우
      */
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.ROOMS, key = "#userId"),
+            @CacheEvict(cacheNames = CacheNames.PARTICIPANTS, key = "#roomId")
+    })
     @Transactional
-    public Long deleteBookMarkToRoom(Long participantId, Long roomId) {
+    public Long deleteBookMarkToParticipant(Long userId, Long participantId, Long roomId) {
 
-        final Participant participant = participantRepository.findOne(participantId)
-                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+        final Participant participant = findParticipant(participantId);
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
 
@@ -184,11 +212,14 @@ public class ParticipantService {
      * @throws IllegalStateException 채팅방에 참여자가 존재하지 않을경우
      * @throws IllegalArgumentException 이미 알람이 설정되어있거나 채팅방의 참여자가 아닐경우
      */
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.ROOMS, key = "#userId"),
+            @CacheEvict(cacheNames = CacheNames.PARTICIPANTS, key = "#roomId")
+    })
     @Transactional
-    public Long addAlarmToRoom(Long participantId, Long roomId) {
+    public Long addAlarmToParticipant(Long userId, Long participantId, Long roomId) {
 
-        final Participant participant = participantRepository.findOne(participantId)
-                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+        final Participant participant = findParticipant(participantId);
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
 
@@ -204,15 +235,24 @@ public class ParticipantService {
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(참여자 | 채팅방)
      * @throws IllegalArgumentException 알람이 설정되지 않을경우
      */
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheNames.ROOMS, key = "#userId"),
+            @CacheEvict(cacheNames = CacheNames.PARTICIPANTS, key = "#roomId")
+    })
     @Transactional
-    public Long deleteAlarmToRoom(Long participantId, Long roomId) {
+    public Long deleteAlarmToParticipant(Long userId, Long participantId, Long roomId) {
 
-        final Participant participant = participantRepository.findOne(participantId)
-                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
+        final Participant participant = findParticipant(participantId);
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
 
         room.deleteAlarm(participant);
         return room.getId();
+    }
+
+    @Transactional(readOnly = true)
+    public Participant findParticipant(Long participantId) {
+        return participantRepository.findOne(participantId)
+                .orElseThrow(() -> new NotEntityException("참여자가 존재하지 않습니다. participantId = " + participantId));
     }
 }

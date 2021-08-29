@@ -1,4 +1,4 @@
-package com.flextalk.we.participant.repository.entity;
+package com.flextalk.we.participant.domain.entity;
 
 import com.flextalk.we.cmmn.entity.BaseEntity;
 import com.flextalk.we.room.domain.entity.Room;
@@ -15,7 +15,7 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "ft_participant", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"room_id", "user_id"})
+        @UniqueConstraint(columnNames = {"room_id", "user_id"}),
 })
 @EqualsAndHashCode(of = {"id"}, callSuper = false)
 public class Participant extends BaseEntity {

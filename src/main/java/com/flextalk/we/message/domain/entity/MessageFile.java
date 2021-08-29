@@ -52,7 +52,7 @@ public class MessageFile extends BaseEntity {
 
         this.orgFileName = FileManager.extractFileName(orgFileName);
         this.fileExt = FileManager.extractFileName(orgFileName);
-        this.fileSize = FileManager.extractFileSize(orgFileName);
+//        this.fileSize = FileManager.extractFileSize(orgFileName);
         this.newFileName = generateNewFileName();
     }
 

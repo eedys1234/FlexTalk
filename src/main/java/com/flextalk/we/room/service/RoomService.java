@@ -1,20 +1,19 @@
 package com.flextalk.we.room.service;
 
 import com.flextalk.we.cmmn.exception.NotEntityException;
+import com.flextalk.we.cmmn.util.CacheNames;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.repository.RoomRepository;
 import com.flextalk.we.room.dto.RoomResponseDto;
 import com.flextalk.we.room.dto.RoomSaveRequestDto;
 import com.flextalk.we.user.domain.entity.User;
-import com.flextalk.we.user.domain.repository.UserRepository;
 import com.flextalk.we.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * 채팅방에 관한 관리 클래스
@@ -24,7 +23,6 @@ import static java.util.stream.Collectors.toList;
 public class RoomService {
 
     private final RoomRepository roomRepository;
-//    private final UserRepository userRepository;
     private final UserService userService;
     private final RoomCacheService roomCacheService;
 
@@ -35,6 +33,7 @@ public class RoomService {
      * @return Room Id
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자)
      */
+    @CacheEvict(cacheNames = CacheNames.ROOMS, key = "#userId")
     @Transactional
     public Long createRoom(Long userId, RoomSaveRequestDto roomSaveRequestDto) {
 
@@ -50,6 +49,7 @@ public class RoomService {
      * @return 채팅방 ID
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자 | 채팅방)
      */
+    @CacheEvict(cacheNames = CacheNames.ROOMS, key = "#userId")
     @Transactional
     public Long deleteRoom(Long userId, Long roomId) {
 
@@ -69,7 +69,7 @@ public class RoomService {
     /**
      * 사용자의 Rooms
      * @param userId 사용자 ID
-     * @return Rooms
+     * @return Room 리스트
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자)
      */
     @Transactional(readOnly = true)
