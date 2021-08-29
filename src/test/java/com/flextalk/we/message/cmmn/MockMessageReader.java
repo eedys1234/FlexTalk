@@ -3,7 +3,6 @@ package com.flextalk.we.message.cmmn;
 import com.flextalk.we.message.domain.entity.Message;
 import com.flextalk.we.participant.repository.entity.Participant;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
