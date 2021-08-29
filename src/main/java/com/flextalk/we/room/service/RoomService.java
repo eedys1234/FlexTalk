@@ -32,7 +32,6 @@ public class RoomService {
      * @return Room Id
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자)
      */
-    @CacheEvict(cacheNames = CacheNames.ROOMS, key = "#userId")
     @Transactional
     public Long createRoom(Long userId, RoomSaveRequestDto roomSaveRequestDto) {
 
@@ -48,7 +47,6 @@ public class RoomService {
      * @return 채팅방 ID
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자 | 채팅방)
      */
-    @CacheEvict(cacheNames = CacheNames.ROOMS, key = "#userId")
     @Transactional
     public Long deleteRoom(Long userId, Long roomId) {
 
@@ -75,7 +73,6 @@ public class RoomService {
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자)
      */
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = CacheNames.ROOMS, key = "#userId")
     public List<RoomResponseDto> getRooms(Long userId) {
 
         final User user = userService.findUser(userId);

@@ -186,7 +186,8 @@ public class RoomControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        SuccessResponse<List<RoomResponseDto>> response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<SuccessResponse<List<RoomResponseDto>>>() {
+        SuccessResponse<List<RoomResponseDto>> response = objectMapper.readValue(mvcResult.getResponse().getContentAsString(),
+                new TypeReference<SuccessResponse<List<RoomResponseDto>>>() {
         });
 
         List<RoomResponseDto> result = response.getResult();
