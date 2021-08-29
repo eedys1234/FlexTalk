@@ -28,8 +28,8 @@ public class MessageReadRepository {
     private final JPAQueryFactory queryFactory;
     private final JdbcTemplate jdbcTemplate;
 
-    @Value("{batch.size}")
-    private final int batchSize;
+    @Value("${batch_size}")
+    private int batchSize;
 
     public MessageRead save(MessageRead messageRead) {
         entityManager.persist(messageRead);
@@ -80,6 +80,11 @@ public class MessageReadRepository {
                 .where(messageRead.message.id.in(messageIds))
                 .groupBy(messageRead.message.id)
                 .orderBy(OrderByNull.DEFAULT)
+                .fetch();
+    }
+
+    public List<MessageRead> findAll() {
+        return queryFactory.selectFrom(messageRead)
                 .fetch();
     }
 }

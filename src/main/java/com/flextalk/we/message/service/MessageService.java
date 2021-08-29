@@ -24,8 +24,8 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public class MessageService {
 
-    @Value("message_file_path")
-    private final String messageFilePath;
+    @Value("${message_file_path}")
+    private String messageFilePath;
 
     private final RoomService roomService;
     private final ParticipantService participantService;
