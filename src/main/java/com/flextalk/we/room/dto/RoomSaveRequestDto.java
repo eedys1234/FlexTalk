@@ -6,17 +6,18 @@ import com.flextalk.we.user.domain.entity.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Getter
 @NoArgsConstructor
 public class RoomSaveRequestDto {
 
-    @NotNull
+    @NotBlank
     @JsonProperty(value = "room_name")
     private String roomName;
 
-    @NotNull
+    @NotBlank
     @JsonProperty(value = "room_type")
     private String roomType;
 
