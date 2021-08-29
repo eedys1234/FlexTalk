@@ -8,7 +8,7 @@ import com.flextalk.we.message.domain.repository.MessageRepository;
 import com.flextalk.we.message.dto.MessageReadDto;
 import com.flextalk.we.message.dto.MessageSaveRequestDto;
 import com.flextalk.we.message.dto.MessageUnReadDto;
-import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.participant.service.ParticipantService;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.service.RoomService;
@@ -105,6 +105,7 @@ public class MessageService {
      * @param messageId 메시지 ID
      * @param participantId 참여자 ID
      * @return 읽은 메시지 ID
+     * TODO : JDBC Batch 사용해야함
      */
     public Long readMessage(Long messageId, Long participantId) {
 

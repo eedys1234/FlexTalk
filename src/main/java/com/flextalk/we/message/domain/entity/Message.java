@@ -1,12 +1,12 @@
 package com.flextalk.we.message.domain.entity;
 
 import com.flextalk.we.cmmn.entity.BaseEntity;
-import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.room.domain.entity.Room;
-import com.flextalk.we.user.domain.entity.User;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -15,6 +15,7 @@ import java.util.Objects;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@DynamicInsert
 @Entity
 @Table(name = "ft_message")
 public class Message extends BaseEntity {
@@ -60,6 +61,7 @@ public class Message extends BaseEntity {
         this.room = Objects.requireNonNull(room);
         this.messageContent = Objects.requireNonNull(messageContent);
         this.messageType = MessageType.valueOf(Objects.requireNonNull(messageType.toUpperCase()));
+        this.isDelete = Boolean.FALSE;
     }
 
     private Message(Participant participant, Room room, String messageContent, String messageType,
