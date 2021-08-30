@@ -1,22 +1,18 @@
 package com.flextalk.we.room.domain.repository;
 
-import com.flextalk.we.room.domain.entity.QRoom;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.dto.RoomResponseDto;
 import com.flextalk.we.user.domain.entity.User;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 
-import static com.flextalk.we.participant.repository.entity.QParticipant.*;
+import static com.flextalk.we.participant.domain.entity.QParticipant.*;
 import static com.flextalk.we.room.domain.entity.QRoom.room;
 
 @Repository

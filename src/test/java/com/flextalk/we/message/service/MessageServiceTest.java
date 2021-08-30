@@ -7,7 +7,7 @@ import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
 import com.flextalk.we.message.dto.MessageReadBulkInsertDto;
 import com.flextalk.we.message.dto.MessageReadUpdateDto;
-import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.participant.service.ParticipantService;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
@@ -48,7 +48,7 @@ public class MessageServiceTest {
 
     @DisplayName("메시지 생성 테스트(TEXT)")
     @Test
-    public void createTextMessageTest() {
+    public void sendTextMessageTest() {
 
         //given
 
@@ -61,7 +61,7 @@ public class MessageServiceTest {
 
     @DisplayName("메시지 생성 테스트(FILE)")
     @Test
-    public void createFileMessageTest() {
+    public void sendFileMessageTest() {
 
         //given
 
@@ -74,7 +74,7 @@ public class MessageServiceTest {
 
     @DisplayName("최근 메시지 리스트 가져오기 테스트")
     @Test
-    public void getMessageUnReadsCount() {
+    public void unReadMessageCountTest() {
 
         //given
 
@@ -88,7 +88,7 @@ public class MessageServiceTest {
 
     @DisplayName("메시지 읽기 테스트")
     @Test
-    public void bulkReadMessageTest() {
+    public void readMessageTest() {
 
         //given
         MockUserFactory mockUserFactory = new MockUserFactory();

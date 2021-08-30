@@ -1,14 +1,19 @@
 package com.flextalk.we.message.domain.entity;
 
 import com.flextalk.we.cmmn.entity.BaseEntity;
-import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.cmmn.file.FileManager;
+import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.room.domain.entity.Room;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 
 import javax.persistence.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -130,6 +135,55 @@ public class Message extends BaseEntity {
     public void comment(Message message) {
         this.childMessages.add(message);
         message.parentMessage = this;
+    }
+
+    /**
+     * 파일 저장
+     * 파일 저장 오류가 일시적인 경우(IOException) 0.5초간격으로 3번 Retry
+     * @param file 저장하고자하는 파일 byte
+     * @return 저장 성공 여부
+     * @throws IOException 파일 저장 실패
+     */
+    @Retryable(
+            value = { IOException.class },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 500L)
+    )
+    public boolean saveFile(byte[] file) {
+
+        if(this.messageType != MessageType.FILE) {
+            throw new IllegalArgumentException("메시지 형태가 파일이 아닙니다.");
+        }
+
+        MessageFile messageFile = Objects.requireNonNull(this.messageFile);
+        boolean isCreated = FileManager.create(messageFile.getFilePath(), String.join(".", messageFile.getNewFileName(), messageFile.getFileExt()), file);
+
+        messageFile.updateFileSize(FileManager.extractFileSize(String.join(File.separator, messageFile.getFilePath(),
+                String.join(".", messageFile.getNewFileName(), messageFile.getFileExt()))));
+
+        return isCreated;
+    }
+
+
+    /**
+     * 파일삭제
+     * 파일 삭제가 일시적인 오류(IOException)인 경우 0.5초 간격으로 3번 Retry
+     * @return 파일삭제 성공여부
+     * @throws IOException 파일삭제 실패 시
+     */
+    @Retryable(
+            value = { IOException.class },
+            maxAttempts = 3,
+            backoff = @Backoff(value = 500L)
+    )
+    public boolean deleteFile() {
+
+        if(this.messageType != MessageType.FILE) {
+            throw new IllegalArgumentException("메시지 형태가 파일이 아닙니다.");
+        }
+
+        MessageFile messageFile = Objects.requireNonNull(this.messageFile);
+        return FileManager.delete(messageFile.getFilePath(), String.join(".", messageFile.getNewFileName(), messageFile.getFileExt()));
     }
 
     /**

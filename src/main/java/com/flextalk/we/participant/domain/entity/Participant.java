@@ -1,4 +1,4 @@
-package com.flextalk.we.participant.repository.entity;
+package com.flextalk.we.participant.domain.entity;
 
 import com.flextalk.we.cmmn.entity.BaseEntity;
 import com.flextalk.we.room.domain.entity.Room;

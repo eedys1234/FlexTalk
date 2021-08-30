@@ -1,11 +1,12 @@
 package com.flextalk.we.message.service;
 
+import com.flextalk.we.cmmn.exception.NotEntityException;
 import com.flextalk.we.cmmn.file.FileManager;
 import com.flextalk.we.message.domain.entity.Message;
 import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
 import com.flextalk.we.message.dto.*;
-import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.participant.service.ParticipantService;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.service.RoomService;
@@ -40,16 +41,15 @@ public class MessageService {
      * @return 생성된 메시지 ID
      */
     @Transactional
-    public Long createTextMessage(Long roomId, Long participantId, MessageSaveRequestDto messageSaveRequestDto) {
+    public Long sendTextMessage(Long roomId, Long participantId, MessageSaveRequestDto messageSaveRequestDto) {
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
 
         final Participant participant = participantService.findParticipant(participantId);
 
         Message message = Message.create(participant, room, messageSaveRequestDto.getMessageContent(), messageSaveRequestDto.getMessageType());
-        Message createdMessage = messageRepository.save(message);
-
-        return createdMessage.getId();
+        Message sendMessage = messageRepository.save(message);
+        return sendMessage.getId();
     }
 
     /**
@@ -60,7 +60,7 @@ public class MessageService {
      * @return 생성된 메시지 ID
      */
     @Transactional
-    public Long createFileMessage(Long roomId, Long participantId, MessageSaveRequestDto messageSaveRequestDto, String orgFileName, byte[] file) {
+    public Long sendFileMessage(Long roomId, Long participantId, MessageSaveRequestDto messageSaveRequestDto, String orgFileName, byte[] file) {
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
 
@@ -69,14 +69,33 @@ public class MessageService {
         Message message = Message.create(participant, room, messageSaveRequestDto.getMessageContent(), messageSaveRequestDto.getMessageType(),
                 messageFilePath, orgFileName);
 
-        Message createdMessage = messageRepository.save(message);
+        message.saveFile(file);
+        Message sendMessage = messageRepository.save(message);
+        return sendMessage.getId();
+    }
 
-        if(!FileManager.create(messageFilePath, orgFileName, file)) {
-            throw new IllegalStateException("파일저장이 실패하였습니다. orgFileName = " + orgFileName);
+    /**
+     * 메시지 삭제
+     * @param messageId 메시지 ID
+     * @param participantId 참여자 ID
+     * @param roomId 채팅방 ID
+     * @return 삭제된 메시지 ID
+     */
+    @Transactional
+    public Long deleteMessage(Long messageId, Long participantId, Long roomId) {
+
+        Message message = messageRepository.findOne(messageId, participantId, roomId)
+                .orElseThrow(() -> new NotEntityException("메시지가 존재하지 않습니다."));
+
+        message.delete();
+        
+        if(message.getMessageType() == Message.MessageType.FILE) {
+            message.deleteFile();
         }
 
-        return createdMessage.getId();
+        return message.getId();
     }
+
 
     /**
      * 메시지 안읽은 수 조회
@@ -85,7 +104,7 @@ public class MessageService {
      * @return 메시지 별 안읽은 수
      */
     @Transactional(readOnly = true)
-    public List<MessageUnReadResponseDto> unReadCountMessages(Long roomId, String messageIds) {
+    public List<MessageUnReadResponseDto> unReadMessagesCount(Long roomId, String messageIds) {
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
         final String[] splitMessageIds = messageIds.split(",");

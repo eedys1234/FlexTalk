@@ -4,8 +4,8 @@ import com.flextalk.we.participant.cmmn.MockParticipantFactory;
 import com.flextalk.we.participant.cmmn.ParticipantMatcher;
 import com.flextalk.we.participant.dto.ParticipantPromoteRequestDto;
 import com.flextalk.we.participant.dto.ParticipantResponseDto;
-import com.flextalk.we.participant.repository.entity.Participant;
-import com.flextalk.we.participant.repository.repository.ParticipantRepository;
+import com.flextalk.we.participant.domain.entity.Participant;
+import com.flextalk.we.participant.domain.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.service.RoomService;
@@ -21,13 +21,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;

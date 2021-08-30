@@ -7,7 +7,7 @@ import com.flextalk.we.participant.cmmn.MockParticipantFactory;
 import com.flextalk.we.participant.dto.ParticipantPromoteRequestDto;
 import com.flextalk.we.participant.dto.ParticipantResponseDto;
 import com.flextalk.we.participant.dto.ParticipantSaveRequestDto;
-import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.participant.service.ParticipantService;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
