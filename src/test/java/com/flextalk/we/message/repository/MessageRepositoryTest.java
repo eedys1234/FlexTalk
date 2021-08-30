@@ -22,12 +22,17 @@ import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -132,16 +137,14 @@ public class MessageRepositoryTest {
         assertThrows(IllegalArgumentException.class, () -> Message.create(participant, room, messageContent, messageType));
     }
 
-    //TODO : 파일저장로직 어떻게 할 건지 고민
     @DisplayName("메시지 생성 테스트(FILE)")
     @Test
-    public void createFileMessageTest() {
+    public void createFileMessageTest() throws IOException {
 
         //given
         MockUserFactory mockUserFactory = new MockUserFactory();
         User roomCreator = mockUserFactory.create("test1@gmail.com", "123!@#DDDDD");
         User invitedUser = mockUserFactory.create("test2@gmail.com", "123!@#DDDDD");
-        FileManager mockFileManager = mock(FileManager.class);
 
         userRepository.save(roomCreator);
         userRepository.save(invitedUser);
@@ -165,13 +168,14 @@ public class MessageRepositoryTest {
         //when
         Message message = Message.create(participant, room, messageContent, messageType, messageFilePath, orgFileName);
         Message sendMessage = messageRepository.save(message);
+        boolean isCreated = sendMessage.saveFile("테스트".getBytes());
 
         //then
         assertThat(sendMessage, notNullValue());
         assertThat(sendMessage.getId(), greaterThan(0L));
         assertThat(sendMessage.getMessageFile(), notNullValue());
         assertThat(sendMessage.getMessageFile().getId(), greaterThan(0L));
-
+        assertThat(isCreated, is(Boolean.TRUE));
     }
 
     @DisplayName("기존 메시지에 답장 메시지 생성 테스트")
@@ -286,7 +290,7 @@ public class MessageRepositoryTest {
         assertThrows(IllegalArgumentException.class, () -> sendMessage.read(invitedParticipant));
     }
 
-    @DisplayName("")
+    @DisplayName("메시지 읽기 테스트")
     @Test
     public void readMessageTest() {
 
@@ -411,5 +415,6 @@ public class MessageRepositoryTest {
                         .collect(toList()),
                 equalTo(expectedReads));
     }
+
 
 }
