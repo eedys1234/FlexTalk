@@ -12,9 +12,12 @@ import com.flextalk.we.room.service.RoomService;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.dialect.lock.OptimisticEntityLockException;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,16 +61,18 @@ public class ParticipantService {
             @CacheEvict(cacheNames = CacheNames.PARTICIPANTS, key = "#roomId")
         }
     )
+//    @Retryable(
+//            value = {OptimisticEntityLockException.class},
+//            maxAttempts = 3,
+//            backoff = @Backoff(delay = 500)
+//    )
     @Transactional
     public Long inviteParticipants(Long roomId, String userIds) {
 
         final String[] splitUserIds = userIds.split(",");
         final List<User> users = userService.findUsers(splitUserIds);
-
         userService.findMatchingUsers(users, splitUserIds);
-
         final Room room = roomService.findRoomAddedAddiction(roomId);
-        
         room.invite(users);
         return roomId;
     }

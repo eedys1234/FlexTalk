@@ -4,8 +4,6 @@ import com.flextalk.we.participant.repository.entity.Participant;
 import com.flextalk.we.participant.repository.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
-import com.flextalk.we.room.domain.entity.RoomMessageDate;
-import com.flextalk.we.room.domain.repository.RoomMessageDateRepository;
 import com.flextalk.we.room.domain.repository.RoomRepository;
 import com.flextalk.we.room.dto.RoomResponseDto;
 import com.flextalk.we.user.cmmn.MockUserFactory;
@@ -15,16 +13,25 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Comparator.*;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -38,11 +45,7 @@ public class RoomRepositoryTest {
     private UserRepository userRepository;
 
     @Autowired
-    private RoomMessageDateRepository roomMessageDateRepository;
-
-    @Autowired
     private ParticipantRepository participantRepository;
-
 
     @DisplayName("채팅방 생성 테스트")
     @Test
@@ -129,8 +132,6 @@ public class RoomRepositoryTest {
         User invitedUser = mockUserFactory.create();
         room.invite(invitedUser);
 
-        room.updateRecentDate();
-
         Room createdRoom = roomRepository.save(room);
 
         Long roomId = createdRoom.getId();
@@ -140,13 +141,81 @@ public class RoomRepositoryTest {
 
         //then
         Optional<Room> findRoom = roomRepository.findOne(roomId);
-        Optional<RoomMessageDate> findRoomMessageDates = roomMessageDateRepository.findByRoomId(room);
         List<Participant> findParticipants = participantRepository.findByUser(roomCreator);
 
         assertThat(resValue, is(1L));
         assertThat(findRoom, equalTo(Optional.empty()));
         assertThat(findParticipants.size(), equalTo(0));
-        assertThat(findRoomMessageDates, equalTo(Optional.empty()));
+    }
+
+    @DisplayName("채팅방에 사용자 초대 시 동시성 문제 테스트")
+    @Test
+    public void inviteParticipantsConcurrentTest() throws Exception {
+
+        //given
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.create("test1@gmail.com", "1!2@3!4#1");
+        User invitedUserA = mockUserFactory.create("test2@gmail.com", "1!2@3!4#1");
+        User invitedUserB = mockUserFactory.create("test3@gmail.com", "1!2@3!4#1");
+        User invitedUserC = mockUserFactory.create("test4@gmail.com", "1!2@3!4#1");
+
+        List<User> users = Arrays.asList(invitedUserA, invitedUserB, invitedUserC);
+
+        userRepository.save(roomCreator);
+
+        for(User user : users) {
+            userRepository.save(user);
+        }
+
+        String roomName = "테스트 채팅방";
+        String roomType = "NORMAL";
+        int roomLimitCount = 2;
+        MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
+        Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
+        roomRepository.save(room);
+
+        int nThreads = 3;
+        ExecutorService executor = Executors.newFixedThreadPool(nThreads);
+
+        CountDownLatch ready = new CountDownLatch(nThreads);
+        CountDownLatch start = new CountDownLatch(1);
+        CountDownLatch done = new CountDownLatch(nThreads);
+
+        AtomicInteger atomicInteger = new AtomicInteger(0);
+
+        for(int i=0;i<nThreads;i++) {
+            executor.execute(() -> {
+                ready.countDown();
+                try {
+                    start.await();
+                    test(room, users.get(atomicInteger.getAndIncrement()));
+                } catch (InterruptedException | IllegalArgumentException | DataIntegrityViolationException e) {
+                    Thread.currentThread().interrupt();
+                } finally {
+                    done.countDown();
+                }
+            });
+        }
+
+        //when
+        ready.await();
+        start.countDown();
+        done.await();
+
+        executor.shutdown();
+
+        List<Participant> participants = participantRepository.findByRoom(room);
+        final int normal = 2;
+
+        //then
+        assertThat(participants.size(), equalTo(normal));
+    }
+
+    private void test(Room room, User user) {
+        room.invite(user);
+//        room.invite(users.get(atomicInteger.getAndIncrement()));
+        roomRepository.save(room);
+
     }
 
 }

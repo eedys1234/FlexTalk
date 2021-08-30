@@ -81,7 +81,7 @@ public class MessageService {
     /**
      * 메시지 안읽은 수 조회
      * @param roomId 채팅방 ID
-     * @param messageIds 메시지 's ID
+     * @param messageIds 메시지's ID
      * @return 메시지 별 안읽은 수
      */
     @Transactional(readOnly = true)
@@ -104,7 +104,7 @@ public class MessageService {
     /**
      * 메시지 읽음
      * @param participantId 참여자 ID
-     * @param messageReadUpdateDto 메시지 ' s ID
+     * @param messageReadUpdateDto 메시지's ID
      * @return 읽은 메시지 ID
      */
     @Transactional

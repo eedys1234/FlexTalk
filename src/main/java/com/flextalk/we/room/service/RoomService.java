@@ -89,6 +89,10 @@ public class RoomService {
     public Room findRoomAddedAddiction(final Long roomId) {
         return roomRepository.findOneWithDetailInfo(roomId)
                 .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
-
     }
+
+    public void clear() {
+        roomRepository.clear();
+    }
+
 }
