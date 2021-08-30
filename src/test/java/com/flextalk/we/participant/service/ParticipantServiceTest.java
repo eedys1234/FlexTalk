@@ -2,6 +2,7 @@ package com.flextalk.we.participant.service;
 
 import com.flextalk.we.participant.cmmn.MockParticipantFactory;
 import com.flextalk.we.participant.cmmn.ParticipantMatcher;
+import com.flextalk.we.participant.dto.ParticipantPromoteRequestDto;
 import com.flextalk.we.participant.dto.ParticipantResponseDto;
 import com.flextalk.we.participant.repository.entity.Participant;
 import com.flextalk.we.participant.repository.repository.ParticipantRepository;
@@ -20,8 +21,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -89,7 +95,6 @@ public class ParticipantServiceTest {
         verify(participantRepository, times(1)).findByRoom(any());
     }
 
-
     @DisplayName("채팅방에 참여자 초대하기 테스트(999명)")
     @Test
     public void inviteParticipant() {
@@ -107,12 +112,12 @@ public class ParticipantServiceTest {
         doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
 
         //when
-        List<Long> participantIds = participantService.inviteParticipants(room.getId(), users.stream()
+        Long participantIds = participantService.inviteParticipants(room.getId(), users.stream()
                 .map(user -> String.valueOf(user.getId()))
                 .collect(joining(",")));
 
         //then(자기 자신 제외)
-        assertThat(participantIds.size(), equalTo(roomLimitCount - 1));
+        assertThat(participantIds, equalTo(room.getId()));
 
         //verify
         verify(userService, times(1)).findUsers(any());
@@ -185,12 +190,11 @@ public class ParticipantServiceTest {
         doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
 
         //when
-        List<Long> deportParticipants = participantService.deportParticipants(room.getId(), roomOwnerParticipant.getId(),
+        Long deportRoomId = participantService.deportParticipants(room.getId(), roomOwnerParticipant.getId(),
                 participants.stream().map(part -> String.valueOf(part.getId())).collect(joining(",")));
 
         //then
-        assertThat(deportParticipants.size(), equalTo(participants.size()));
-        assertThat(deportParticipants, equalTo(participants.stream().map(Participant::getId).collect(toList())));
+        assertThat(deportRoomId, equalTo(room.getId()));
 
         //verify
         verify(participantRepository, times(1)).findByIds(any());
@@ -220,11 +224,14 @@ public class ParticipantServiceTest {
 
         ReflectionTestUtils.setField(promoteParticipant, "id", 2L);
 
+        ParticipantPromoteRequestDto promoteRequestDto = new ParticipantPromoteRequestDto();
+        ReflectionTestUtils.setField(promoteRequestDto, "promoteParticipantId", promoteParticipant.getId());
+
         doReturn(Optional.ofNullable(roomOwnerParticipant)).when(participantRepository).findOwner(anyLong());
         doReturn(Optional.ofNullable(promoteParticipant)).when(participantRepository).findOne(anyLong());
 
         //when
-        Long promoteParticipantId = participantService.promotePermission(room.getId(), roomOwnerParticipant.getId(), promoteParticipant.getId());
+        Long promoteParticipantId = participantService.promotePermission(room.getId(), roomOwnerParticipant.getId(), promoteRequestDto);
 
         //then
         assertThat(promoteParticipantId, equalTo(promoteParticipant.getId()));
@@ -260,7 +267,7 @@ public class ParticipantServiceTest {
         doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
 
         //when
-        Long addBookMarkRoomId = participantService.addBookMarkToParticipant(invitedUser.getId(), participant.getId(), room.getId());
+        Long addBookMarkRoomId = participantService.addBookMarkToParticipant(participant.getId(), room.getId());
 
         //then
         assertThat(addBookMarkRoomId, is(room.getId()));
@@ -297,7 +304,7 @@ public class ParticipantServiceTest {
         room.addBookMark(participant);
 
         //when
-        assertThrows(IllegalArgumentException.class, () -> participantService.addBookMarkToParticipant(invitedUser.getId(), participant.getId(), room.getId()));
+        assertThrows(IllegalArgumentException.class, () -> participantService.addBookMarkToParticipant(participant.getId(), room.getId()));
 
         //verify
         verify(participantRepository, times(1)).findOne(anyLong());
@@ -332,7 +339,7 @@ public class ParticipantServiceTest {
         doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
 
         //when
-        Long deleteBookMarkRoomId = participantService.deleteBookMarkToParticipant(invitedUser.getId(), participant.getId(), room.getId());
+        Long deleteBookMarkRoomId = participantService.deleteBookMarkToParticipant(participant.getId(), room.getId());
 
         //then
         assertThat(deleteBookMarkRoomId, equalTo(room.getId()));
@@ -369,7 +376,7 @@ public class ParticipantServiceTest {
         doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
 
         //when
-        assertThrows(IllegalArgumentException.class, () -> participantService.deleteBookMarkToParticipant(invitedUser.getId(), participant.getId(), room.getId()));
+        assertThrows(IllegalArgumentException.class, () -> participantService.deleteBookMarkToParticipant(participant.getId(), room.getId()));
 
         //verify
         verify(participantRepository, times(1)).findOne(anyLong());
@@ -403,7 +410,7 @@ public class ParticipantServiceTest {
         doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
 
         //when
-        Long addAlarmToRoomId = participantService.addAlarmToParticipant(invitedUser.getId(), participant.getId(), room.getId());
+        Long addAlarmToRoomId = participantService.addAlarmToParticipant(participant.getId(), room.getId());
 
         //then
         assertThat(addAlarmToRoomId, equalTo(addAlarmToRoomId));
@@ -438,7 +445,7 @@ public class ParticipantServiceTest {
         doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
 
         //when
-        assertThrows(IllegalArgumentException.class, () -> participantService.addAlarmToParticipant(invitedUser.getId(), participant.getId(), room.getId()));
+        assertThrows(IllegalArgumentException.class, () -> participantService.addAlarmToParticipant(participant.getId(), room.getId()));
 
         //verify
         verify(participantRepository, times(1)).findOne(anyLong());
@@ -471,7 +478,7 @@ public class ParticipantServiceTest {
         doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
 
         //when
-        Long deleteAlarmToRoomId = participantService.deleteAlarmToParticipant(invitedUser.getId(), participant.getId(), room.getId());
+        Long deleteAlarmToRoomId = participantService.deleteAlarmToParticipant(participant.getId(), room.getId());
 
         //then
         assertThat(deleteAlarmToRoomId, equalTo(room.getId()));
@@ -508,12 +515,13 @@ public class ParticipantServiceTest {
         doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
 
         //when, then
-        assertThrows(IllegalArgumentException.class, () -> participantService.deleteAlarmToParticipant(invitedUser.getId(), participant.getId(), room.getId()));
+        assertThrows(IllegalArgumentException.class, () -> participantService.deleteAlarmToParticipant(participant.getId(), room.getId()));
 
         //verify
         verify(participantRepository, times(1)).findOne(anyLong());
         verify(roomService, times(1)).findRoomAddedAddiction(anyLong());
         verify(room, times(2)).deleteAlarm(any());
     }
+
 
 }

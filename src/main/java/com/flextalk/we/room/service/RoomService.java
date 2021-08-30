@@ -10,6 +10,7 @@ import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,8 +25,6 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
     private final UserService userService;
-    private final RoomCacheService roomCacheService;
-
 
     /**
      * 채팅방 생성 함수
@@ -33,7 +32,6 @@ public class RoomService {
      * @return Room Id
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자)
      */
-    @CacheEvict(cacheNames = CacheNames.ROOMS, key = "#userId")
     @Transactional
     public Long createRoom(Long userId, RoomSaveRequestDto roomSaveRequestDto) {
 
@@ -49,7 +47,6 @@ public class RoomService {
      * @return 채팅방 ID
      * @throws NotEntityException 요청된 정보가 존재하지 않을경우(사용자 | 채팅방)
      */
-    @CacheEvict(cacheNames = CacheNames.ROOMS, key = "#userId")
     @Transactional
     public Long deleteRoom(Long userId, Long roomId) {
 
@@ -67,6 +64,9 @@ public class RoomService {
     }
 
     /**
+     * Cache Service getRooms 메서드롤 호출하는 호출자는 선언적 트랜잭션으로 감싸있을 것이라 예상됨
+     * Spring Transactional 속성 중 Propagation default 전략은 PROPAGATION_REQUIRED
+     * PROPAGATION_REQUIRED 전략은 기존 트랜잭션에 참여, 즉 호출자의 트랜잭션에 참여함
      * 사용자의 Rooms
      * @param userId 사용자 ID
      * @return Room 리스트
@@ -76,8 +76,7 @@ public class RoomService {
     public List<RoomResponseDto> getRooms(Long userId) {
 
         final User user = userService.findUser(userId);
-
-        return roomCacheService.getRooms(user);
+        return roomRepository.findByUser(user);
     }
 
     @Transactional(readOnly = true)
@@ -90,6 +89,10 @@ public class RoomService {
     public Room findRoomAddedAddiction(final Long roomId) {
         return roomRepository.findOneWithDetailInfo(roomId)
                 .orElseThrow(() -> new NotEntityException("채팅방이 존재하지 않습니다. roomId = " + roomId));
-
     }
+
+    public void clear() {
+        roomRepository.clear();
+    }
+
 }

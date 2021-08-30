@@ -43,9 +43,6 @@ public class RoomServiceTest {
     @Mock
     private UserService userService;
 
-    @Mock
-    private RoomCacheService roomCacheService;
-
     private User getUser() {
 
         Long userId = 1L;
@@ -125,20 +122,23 @@ public class RoomServiceTest {
         verify(roomRepository, times(1)).save(any(Room.class));
     }
 
-    @DisplayName("캐시된 사용자의 채팅방 리스트 가져오기 테스트")
+    @DisplayName("사용자의 채팅방 리스트 가져오기 테스트")
     @Test
     public void getRooms() {
 
         //given
-        User user = getUser();
-        MockRoomFactory mockRoomFactory = new MockRoomFactory(user);
+        User roomCreator = getUser();
+        MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
         List<Room> rooms = mockRoomFactory.createList();
 
-        doReturn(user).when(userService).findUser(anyLong());
-        doReturn(rooms).when(roomCacheService).getRooms(any(User.class));
+        doReturn(roomCreator).when(userService).findUser(anyLong());
+        doReturn(rooms.stream()
+                .map(room -> new RoomResponseDto(room.getId(), room.getRoomName(), room.getRoomTypeInfo().getRoomType(),
+                        room.getRoomTypeInfo().getRoomLimitCount(), false, false, true))
+                .collect(toList())).when(roomRepository).findByUser(any(User.class));
 
         //when
-        List<RoomResponseDto> findRooms = roomService.getRooms(user.getId());
+        List<RoomResponseDto> findRooms = roomService.getRooms(roomCreator.getId());
 
         //then
         assertThat(findRooms.size(), equalTo(rooms.size()));
@@ -147,7 +147,7 @@ public class RoomServiceTest {
 
         //verify
         verify(userService, times(1)).findUser(anyLong());
-        verify(roomCacheService, times(1)).getRooms(any(User.class));
+        verify(roomRepository, times(1)).findByUser(any(User.class));
     }
 
 

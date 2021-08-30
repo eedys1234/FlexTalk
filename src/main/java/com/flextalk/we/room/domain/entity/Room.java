@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Check;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import static java.util.stream.Collectors.toList;
 @Entity
 @Table(name = "ft_room")
 @EqualsAndHashCode(of = {"id"}, callSuper = false)
+@Check(constraints = "allow_participant_count >= 0")
 public class Room extends BaseEntity {
 
     @Id
@@ -40,15 +42,19 @@ public class Room extends BaseEntity {
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL)
     private List<Participant> participants = new ArrayList<>();
 
-    @OneToOne(mappedBy = "room", cascade = CascadeType.ALL)
-    private RoomMessageDate roomMessageDate;
-
     @Column(name = "is_delete")
     private Boolean isDelete;
+
+    @Column(name = "allow_participant_count")
+    private int allowParticipantCount;
+
+    private int version;
 
     private Room(String roomName, String roomType, Integer roomLimitCount) {
         this.roomName = Objects.requireNonNull(roomName);
         this.roomTypeInfo = new RoomTypeInfo(roomType, roomLimitCount);
+        this.allowParticipantCount = this.roomTypeInfo.getRoomLimitCount();
+        this.version = 0;
     }
 
     /**
@@ -114,6 +120,7 @@ public class Room extends BaseEntity {
 
         Participant participant = function.apply(user);
         this.participants.add(participant);
+        this.allowParticipantCount--;
         return participant.getId();
     }
 
@@ -141,6 +148,7 @@ public class Room extends BaseEntity {
         for(User user : users) {
             participantIds.add(invite(user));
         }
+
         return participantIds;
     }
     
@@ -163,6 +171,8 @@ public class Room extends BaseEntity {
         this.participants = this.participants.stream()
                 .filter(participant -> !participant.equals(leaveParticipant))
                 .collect(toList());
+
+        this.allowParticipantCount += 1;
 
         return leaveParticipant.getId();
     }
@@ -215,8 +225,12 @@ public class Room extends BaseEntity {
      * @throws IllegalArgumentException 채팅방에 참여자가 아닐경우
      */
     private boolean matchParticipant(User user) {
-        return this.participants.stream()
-                .anyMatch(participant -> participant.isParticipant(user));
+        for(Participant participant : participants) {
+            if(participant.isParticipant(user)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -226,8 +240,12 @@ public class Room extends BaseEntity {
      * @throws IllegalArgumentException 채팅방에 참여자가 아닐경우
      */
     private boolean matchReturnBoolean(Participant otherParticipant) {
-        return this.participants.stream()
-                .anyMatch(participant -> participant.equals(otherParticipant));
+        for(Participant participant : participants) {
+            if(participant.equals(otherParticipant)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -328,13 +346,6 @@ public class Room extends BaseEntity {
         }
 
         participant.deleteAlarm();
-    }
-
-    /**
-     * 채팅방 내 최근 메시지의 시간 업데이트
-     */
-    public void updateRecentDate() {
-        this.roomMessageDate = RoomMessageDate.generate(this);
     }
 
 }
