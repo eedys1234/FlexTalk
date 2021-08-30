@@ -121,26 +121,23 @@ public class MessageService {
 
     /**
      * 메시지 읽음
-     * @param participantId 참여자 ID
      * @param messageReadUpdateDto 메시지's ID
-     * @return 읽은 메시지 ID
+     * @return 메시지 읽음 성공여부
      */
     @Transactional
-    public List<Long> readMessage(Long participantId, MessageReadUpdateDto messageReadUpdateDto) {
+    public Long readMessage(MessageReadUpdateDto messageReadUpdateDto) {
 
-        Participant participant = participantService.findParticipant(participantId);
+        Participant participant = participantService.findParticipant(messageReadUpdateDto.getParticipantId());
 
         String[] splitMessageIds = messageReadUpdateDto.getMessageIds().split(",");
 
         List<MessageReadBulkInsertDto> messageReads = Arrays.stream(splitMessageIds)
-                .map(id -> new MessageReadBulkInsertDto(participantId, Long.parseLong(id)))
+                .map(id -> new MessageReadBulkInsertDto(messageReadUpdateDto.getParticipantId(), Long.parseLong(id)))
                 .collect(toList());
 
         messageReadRepository.saveAll(messageReads);
 
-        return messageReads.stream()
-                .map(MessageReadBulkInsertDto::getMessageId)
-                .collect(toList());
+        return 1L;
     }
 
 }

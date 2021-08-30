@@ -72,9 +72,8 @@ public class MessageController {
 
     @PutMapping(value = "/v1/messages/read")
     @ResponseStatus(HttpStatus.CREATED)
-    public SuccessResponse<Long> readMessages(@RequestParam Long participantId,
-                                              @RequestBody @Valid MessageReadUpdateDto messageReadUpdateDto) {
+    public SuccessResponse<Long> readMessages(@RequestBody @Valid MessageReadUpdateDto messageReadUpdateDto) {
 
-        return SuccessResponse.of(HttpStatus.CREATED.value(), messageService.readMessage(participantId, messageReadUpdateDto));
+        return SuccessResponse.of(HttpStatus.CREATED.value(), messageService.readMessage(messageReadUpdateDto));
     }
 }

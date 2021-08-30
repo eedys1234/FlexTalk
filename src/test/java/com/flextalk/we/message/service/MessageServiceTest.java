@@ -310,17 +310,12 @@ public class MessageServiceTest {
 
         room.invite(invitedUser);
 
-        Participant roomParticipant = room.participants().stream()
-                .filter(part -> part.getIsOwner())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
 
-        Participant participant = room.participants().stream()
-                .filter(part -> !part.getIsOwner())
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("참여자가 존재하지 않습니다."));
+        Participant participant = ParticipantMatcher.matchingNotRoomOwner(room).get(0);
 
-        ReflectionTestUtils.setField(participant, "id", 2L);
+        long participantId = 2L;
+        ReflectionTestUtils.setField(participant, "id", participantId);
 
         MockMessageFactory mockMessageFactory = new MockMessageBulkFactory(room, participant);
         List<Message> messages = mockMessageFactory.createTextListAddedId();
@@ -329,18 +324,22 @@ public class MessageServiceTest {
                 .map(message -> new MessageReadBulkInsertDto(roomCreator.getId(), message.getId()))
                 .collect(toList());
 
-        doReturn(roomParticipant).when(participantService).findParticipant(anyLong());
+        doReturn(roomOwnerParticipant).when(participantService).findParticipant(anyLong());
         doNothing().when(messageReadRepository).saveAll(any());
 
         MessageReadUpdateDto messageReadUpdateDto = new MessageReadUpdateDto();
+        ReflectionTestUtils.setField(messageReadUpdateDto, "participantId", participantId);
         ReflectionTestUtils.setField(messageReadUpdateDto, "messageIds",
                 messages.stream().map(message -> String.valueOf(message.getId())).collect(joining(",")));
 
+
+        long isSuccess = 1L;
+
         //when
-        List<Long> readMessageIds = messageService.readMessage(roomCreator.getId(), messageReadUpdateDto);
+        Long isRead = messageService.readMessage(messageReadUpdateDto);
 
         //then
-        assertThat(readMessageIds.size(), equalTo(messages.size()));
+        assertThat(isRead, equalTo(isSuccess));
 
         //verify
         verify(participantService, times(1)).findParticipant(anyLong());
