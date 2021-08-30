@@ -133,7 +133,7 @@ public class ParticipantServiceTest {
         room.invite(invitedUser);
         Long invitedParticipantId = 1L;
 
-        Participant roomOwnerParticipant = ParticipantMatcher.matingRoomOwner(room);
+        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
 
         ReflectionTestUtils.setField(roomOwnerParticipant, "id", invitedParticipantId);
 
@@ -164,7 +164,7 @@ public class ParticipantServiceTest {
         MockUserFactory extendedUserFactory = new MockLimitUserFactory();
         List<User> users = extendedUserFactory.createListAddedId().subList(0, 999);
 
-        Participant roomOwnerParticipant = ParticipantMatcher.matingRoomOwner(room);
+        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
 
         long id = 1L;
         ReflectionTestUtils.setField(roomOwnerParticipant, "id", id);
@@ -207,7 +207,7 @@ public class ParticipantServiceTest {
         User roomCreator = mockUserFactory.createAddedId(0L);
         Room room = getRoom(roomCreator, roomLimitCount);
 
-        Participant roomOwnerParticipant = ParticipantMatcher.matingRoomOwner(room);
+        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
 
         ReflectionTestUtils.setField(roomOwnerParticipant, "id", 1L);
 

@@ -108,7 +108,6 @@ public class MessageService {
 
         final Room room = roomService.findRoomAddedAddiction(roomId);
         final String[] splitMessageIds = messageIds.split(",");
-
         final List<Participant> participants = room.participants();
 
         List<MessageReadResponseDto> reads = messageReadRepository.findByMessages(Arrays.stream(splitMessageIds)

@@ -10,7 +10,7 @@ import static java.util.stream.Collectors.toList;
 
 public class ParticipantMatcher {
 
-    public static Participant matingRoomOwner(Room room) {
+    public static Participant matchingRoomOwner(Room room) {
         return room.participants().stream()
                 .filter(Participant::getIsOwner)
                 .findFirst()

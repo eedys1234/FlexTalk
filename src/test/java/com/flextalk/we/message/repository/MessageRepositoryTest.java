@@ -1,5 +1,6 @@
 package com.flextalk.we.message.repository;
 
+import com.flextalk.we.cmmn.exception.NotEntityException;
 import com.flextalk.we.cmmn.file.FileManager;
 import com.flextalk.we.message.cmmn.MockMessageBulkFactory;
 import com.flextalk.we.message.cmmn.MockMessageFactory;
@@ -237,7 +238,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant ownerParticipant = ParticipantMatcher.matingRoomOwner(room);
+        Participant ownerParticipant = ParticipantMatcher.matchingRoomOwner(room);
         Participant invitedParticipant = ParticipantMatcher.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
@@ -262,7 +263,6 @@ public class MessageRepositoryTest {
         MockUserFactory mockUserFactory = new MockUserFactory();
         User roomCreator = mockUserFactory.create("test1@gmail.com", "123!@#DDDDD");
         User invitedUser = mockUserFactory.create("test2@gmail.com", "123!@#DDDDD");
-        FileManager mockFileManager = mock(FileManager.class);
 
         userRepository.save(roomCreator);
         userRepository.save(invitedUser);
@@ -311,7 +311,7 @@ public class MessageRepositoryTest {
         room.invite(invitedUser);
         roomRepository.save(room);
 
-        Participant roomOwnerParticipant = ParticipantMatcher.matingRoomOwner(room);
+        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
         Participant invitedParticipant = ParticipantMatcher.matchingNotRoomOwner(room).get(0);
 
         MockMessageFactory mockMessageFactory = new MockMessageBulkFactory(room, invitedParticipant);
@@ -331,6 +331,45 @@ public class MessageRepositoryTest {
         //then
         List<MessageRead> allReads = messageReadRepository.findAll();
         assertThat(allReads.size(), equalTo(messages.size()));
+    }
+
+    @DisplayName("특정 메시지 가져오기 테스트")
+    @Test
+    public void findOneMessageTest() {
+
+        //given
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.create("test1@gmail.com", "123!@#DDDDD");
+        User invitedUser = mockUserFactory.create("test2@gmail.com", "123!@#DDDDD");
+
+        userRepository.save(roomCreator);
+        userRepository.save(invitedUser);
+
+        MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
+        String roomName = "테스트_채팅방";
+        String roomType = "GROUP";
+        int roomLimitCount = 10;
+        Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
+
+        room.invite(invitedUser);
+
+        roomRepository.save(room);
+
+        Participant invitedParticipant = ParticipantMatcher.matchingParticipant(room, invitedUser);
+
+        String messageContent = "테스트 채팅입니다.";
+        String messageType = "FILE";
+        String orgFileName = "개발자학습로드맵.txt";
+
+        Message message = Message.create(invitedParticipant, room, messageContent, messageType, messageFilePath, orgFileName);
+        Message sendMessage = messageRepository.save(message);
+
+        //when
+        Message findMessage = messageRepository.findOne(sendMessage.getId(), invitedParticipant.getId(), room.getId())
+                .orElseThrow(() -> new NotEntityException("메시지를 찾을 수 없습니다."));
+
+        //then
+        assertThat(findMessage, equalTo(sendMessage));
 
     }
 
@@ -362,7 +401,7 @@ public class MessageRepositoryTest {
         room.invite(invitedUsers);
         roomRepository.save(room);
 
-        Participant roomOwnerParticipant = ParticipantMatcher.matingRoomOwner(room);
+        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
         List<Participant> participants = ParticipantMatcher.matchingNotRoomOwner(room);
 
         MockMessageFactory mockMessageFactory = new MockMessageFactory(room, roomOwnerParticipant);

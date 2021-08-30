@@ -1,5 +1,6 @@
 package com.flextalk.we.message.cmmn;
 
+import com.flextalk.we.cmmn.file.FileManager;
 import com.flextalk.we.message.domain.entity.Message;
 import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.room.domain.entity.Room;
@@ -7,6 +8,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
 
@@ -65,5 +67,25 @@ public class MockMessageFactory {
         return messages;
     }
 
+    private String createUUID() {
+        return UUID.randomUUID().toString().replace("-", "").toUpperCase();
+    }
 
+    public List<Message> createFileList(String filePath) {
+        return Arrays.stream(fileMessageInfo)
+                .map(info -> Message.create(participant, room, info[0], info[1], filePath, String.join(".", createUUID(), "txt")))
+                .collect(toList());
+    }
+
+    public List<Message> createFileListAddedId(String filePath) {
+
+        List<Message> messages = createFileList(filePath);
+
+        long id = 1L;
+
+        for(Message message : messages) {
+            ReflectionTestUtils.setField(message, "id", id++);
+        }
+        return messages;
+    }
 }
