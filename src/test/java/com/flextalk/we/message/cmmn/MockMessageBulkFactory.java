@@ -1,7 +1,7 @@
 package com.flextalk.we.message.cmmn;
 
 import com.flextalk.we.message.domain.entity.Message;
-import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.room.domain.entity.Room;
 import org.springframework.test.util.ReflectionTestUtils;
 

@@ -2,12 +2,14 @@ package com.flextalk.we.message.domain.repository;
 
 import com.flextalk.we.message.domain.entity.Message;
 import com.flextalk.we.room.domain.entity.Room;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.flextalk.we.message.domain.entity.QMessage.message;
@@ -36,11 +38,20 @@ public class MessageRepository {
                 .fetch();
     }
 
-    public Optional<Message> findOne(Long messageId) {
+    public Optional<Message> findOne(Long messageId, Long participantId, Long roomId) {
         return Optional.ofNullable(
                 queryFactory.selectFrom(message)
-                    .where(message.id.eq(messageId))
-                    .fetchOne()
+                .where(message.id.eq(messageId), eqRoom(roomId),
+                        eqParticipant(participantId))
+                .fetchOne()
         );
+    }
+
+    private BooleanExpression eqParticipant(Long participantId) {
+        return Objects.isNull(participantId) ? null : message.participant.id.eq(participantId);
+    }
+
+    private BooleanExpression eqRoom(Long roomId) {
+        return Objects.isNull(roomId) ? null : message.room.id.eq(roomId);
     }
 }

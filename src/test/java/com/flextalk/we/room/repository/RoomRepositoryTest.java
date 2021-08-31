@@ -1,7 +1,7 @@
 package com.flextalk.we.room.repository;
 
-import com.flextalk.we.participant.repository.entity.Participant;
-import com.flextalk.we.participant.repository.repository.ParticipantRepository;
+import com.flextalk.we.participant.domain.entity.Participant;
+import com.flextalk.we.participant.domain.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.domain.repository.RoomRepository;
@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -30,8 +29,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")

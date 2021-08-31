@@ -52,7 +52,6 @@ public class MessageFile extends BaseEntity {
 
         this.orgFileName = FileManager.extractFileName(orgFileName);
         this.fileExt = FileManager.extractFileName(orgFileName);
-//        this.fileSize = FileManager.extractFileSize(orgFileName);
         this.newFileName = generateNewFileName();
     }
 
@@ -74,5 +73,9 @@ public class MessageFile extends BaseEntity {
      */
     private String generateNewFileName() {
         return UUID.randomUUID().toString().replace("-", "").toUpperCase();
+    }
+
+    public void updateFileSize(Long fileSize) {
+        this.fileSize = fileSize;
     }
 }

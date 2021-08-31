@@ -1,6 +1,6 @@
 package com.flextalk.we.participant.cmmn;
 
-import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.user.domain.entity.User;
 
@@ -8,9 +8,9 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
-public class ParticipantMatcher {
+public class ParticipantMatchers {
 
-    public static Participant matingRoomOwner(Room room) {
+    public static Participant matchingRoomOwner(Room room) {
         return room.participants().stream()
                 .filter(Participant::getIsOwner)
                 .findFirst()

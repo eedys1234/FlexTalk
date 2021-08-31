@@ -1,6 +1,6 @@
 package com.flextalk.we.participant.cmmn;
 
-import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.user.domain.entity.User;
 

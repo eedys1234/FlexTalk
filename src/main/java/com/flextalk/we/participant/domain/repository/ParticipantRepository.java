@@ -1,6 +1,6 @@
-package com.flextalk.we.participant.repository.repository;
+package com.flextalk.we.participant.domain.repository;
 
-import com.flextalk.we.participant.repository.entity.Participant;
+import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.user.domain.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -11,7 +11,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
-import static com.flextalk.we.participant.repository.entity.QParticipant.*;
+import static com.flextalk.we.participant.domain.entity.QParticipant.*;
 import static com.flextalk.we.room.domain.entity.QRoom.*;
 import static com.flextalk.we.user.domain.entity.QUser.*;
 
