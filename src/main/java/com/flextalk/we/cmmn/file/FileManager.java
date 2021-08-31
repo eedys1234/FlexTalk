@@ -1,5 +1,7 @@
 package com.flextalk.we.cmmn.file;
 
+import lombok.extern.log4j.Log4j2;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -12,6 +14,7 @@ import java.util.Objects;
 /**
  * File의 생성, 삭제 등 관리하는 객체
  */
+@Log4j2
 public class FileManager implements AutoCloseable {
 
     private FileOutputStream fout;
@@ -45,9 +48,12 @@ public class FileManager implements AutoCloseable {
             return true;
         }
         catch (FileNotFoundException e) {
+            log.error("파일을 찾을 수 없습니다.");
+            log.error(e.getMessage());
             return false;
         }
         catch (IOException e) {
+            log.error(e.getMessage());
             return false;
         }
     }
