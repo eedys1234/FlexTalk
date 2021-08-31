@@ -26,7 +26,7 @@ import static java.util.stream.Collectors.toList;
 public class MessageService {
 
     @Value("${message_file_path}")
-    private String messageFilePath;
+    protected String messageFilePath;
 
     private final RoomService roomService;
     private final ParticipantService participantService;
@@ -69,8 +69,8 @@ public class MessageService {
         Message message = Message.create(participant, room, messageSaveRequestDto.getMessageContent(), messageSaveRequestDto.getMessageType(),
                 messageFilePath, orgFileName);
 
-        message.saveFile(file);
         Message sendMessage = messageRepository.save(message);
+        message.saveFile(file);
         return sendMessage.getId();
     }
 
