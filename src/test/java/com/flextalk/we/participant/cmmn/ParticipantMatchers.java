@@ -8,7 +8,7 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
-public class ParticipantMatcher {
+public class ParticipantMatchers {
 
     public static Participant matchingRoomOwner(Room room) {
         return room.participants().stream()

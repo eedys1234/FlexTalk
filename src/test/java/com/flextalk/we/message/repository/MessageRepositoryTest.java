@@ -1,7 +1,6 @@
 package com.flextalk.we.message.repository;
 
 import com.flextalk.we.cmmn.exception.NotEntityException;
-import com.flextalk.we.cmmn.file.FileManager;
 import com.flextalk.we.message.cmmn.MockMessageBulkFactory;
 import com.flextalk.we.message.cmmn.MockMessageFactory;
 import com.flextalk.we.message.cmmn.MockMessageReader;
@@ -12,7 +11,7 @@ import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
 import com.flextalk.we.message.dto.MessageReadBulkInsertDto;
 import com.flextalk.we.message.dto.MessageReadResponseDto;
-import com.flextalk.we.participant.cmmn.ParticipantMatcher;
+import com.flextalk.we.participant.cmmn.ParticipantMatchers;
 import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.participant.domain.repository.ParticipantRepository;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
@@ -23,17 +22,13 @@ import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,7 +37,6 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles(value = "test")
@@ -92,7 +86,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant participant = ParticipantMatcher.matchingParticipant(room, invitedUser);
+        Participant participant = ParticipantMatchers.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "TEXT";
@@ -129,7 +123,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant participant = ParticipantMatcher.matchingParticipant(room, invitedUser);
+        Participant participant = ParticipantMatchers.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";
@@ -160,7 +154,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant participant = ParticipantMatcher.matchingParticipant(room, invitedUser);
+        Participant participant = ParticipantMatchers.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";
@@ -201,7 +195,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant participant = ParticipantMatcher.matchingParticipant(room, invitedUser);
+        Participant participant = ParticipantMatchers.matchingParticipant(room, invitedUser);
 
         String parentMessageContent = "테스트 채팅입니다.";
         String parentMessageType = "TEXT";
@@ -238,8 +232,8 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant ownerParticipant = ParticipantMatcher.matchingRoomOwner(room);
-        Participant invitedParticipant = ParticipantMatcher.matchingParticipant(room, invitedUser);
+        Participant ownerParticipant = ParticipantMatchers.matchingRoomOwner(room);
+        Participant invitedParticipant = ParticipantMatchers.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";
@@ -277,7 +271,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant invitedParticipant = ParticipantMatcher.matchingParticipant(room, invitedUser);
+        Participant invitedParticipant = ParticipantMatchers.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";
@@ -311,8 +305,8 @@ public class MessageRepositoryTest {
         room.invite(invitedUser);
         roomRepository.save(room);
 
-        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
-        Participant invitedParticipant = ParticipantMatcher.matchingNotRoomOwner(room).get(0);
+        Participant roomOwnerParticipant = ParticipantMatchers.matchingRoomOwner(room);
+        Participant invitedParticipant = ParticipantMatchers.matchingNotRoomOwner(room).get(0);
 
         MockMessageFactory mockMessageFactory = new MockMessageBulkFactory(room, invitedParticipant);
         List<Message> messages = mockMessageFactory.createTextList();
@@ -355,7 +349,7 @@ public class MessageRepositoryTest {
 
         roomRepository.save(room);
 
-        Participant invitedParticipant = ParticipantMatcher.matchingParticipant(room, invitedUser);
+        Participant invitedParticipant = ParticipantMatchers.matchingParticipant(room, invitedUser);
 
         String messageContent = "테스트 채팅입니다.";
         String messageType = "FILE";
@@ -401,8 +395,8 @@ public class MessageRepositoryTest {
         room.invite(invitedUsers);
         roomRepository.save(room);
 
-        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
-        List<Participant> participants = ParticipantMatcher.matchingNotRoomOwner(room);
+        Participant roomOwnerParticipant = ParticipantMatchers.matchingRoomOwner(room);
+        List<Participant> participants = ParticipantMatchers.matchingNotRoomOwner(room);
 
         MockMessageFactory mockMessageFactory = new MockMessageFactory(room, roomOwnerParticipant);
         List<Message> messages = mockMessageFactory.createTextList();

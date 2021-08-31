@@ -6,7 +6,7 @@ import com.flextalk.we.message.domain.entity.Message;
 import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
 import com.flextalk.we.message.dto.*;
-import com.flextalk.we.participant.cmmn.ParticipantMatcher;
+import com.flextalk.we.participant.cmmn.ParticipantMatchers;
 import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.participant.service.ParticipantService;
 import com.flextalk.we.room.cmmn.MockRoomFactory;
@@ -14,17 +14,12 @@ import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.service.RoomService;
 import com.flextalk.we.user.cmmn.MockUserFactory;
 import com.flextalk.we.user.domain.entity.User;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.MockUtil;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Arrays;
@@ -73,7 +68,7 @@ public class MessageServiceTest {
         long roomId = 1L;
         ReflectionTestUtils.setField(room, "id", roomId);
 
-        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
+        Participant roomOwnerParticipant = ParticipantMatchers.matchingRoomOwner(room);
         long participantId = 1L;
         ReflectionTestUtils.setField(roomOwnerParticipant, "id", participantId);
 
@@ -172,7 +167,7 @@ public class MessageServiceTest {
         long roomId = 1L;
         ReflectionTestUtils.setField(room, "id", roomId);
 
-        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
+        Participant roomOwnerParticipant = ParticipantMatchers.matchingRoomOwner(room);
         long participantId = 1L;
         ReflectionTestUtils.setField(roomOwnerParticipant, "id", participantId);
 
@@ -208,7 +203,7 @@ public class MessageServiceTest {
         long roomId = 1L;
         ReflectionTestUtils.setField(room, "id", roomId);
 
-        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
+        Participant roomOwnerParticipant = ParticipantMatchers.matchingRoomOwner(room);
         long participantId = 1L;
         ReflectionTestUtils.setField(roomOwnerParticipant, "id", participantId);
 
@@ -258,7 +253,7 @@ public class MessageServiceTest {
         room.invite(users);
 
         long participantId = 1L;
-        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
+        Participant roomOwnerParticipant = ParticipantMatchers.matchingRoomOwner(room);
         ReflectionTestUtils.setField(roomOwnerParticipant, "id", participantId);
 
         MockMessageFactory mockMessageFactory = new MockMessageBulkFactory(room, roomOwnerParticipant);
@@ -283,7 +278,7 @@ public class MessageServiceTest {
         //then
         assertThat(unReads.size(), equalTo(messages.size()));
         assertThat(unReads.stream()
-                .map(MessageUnReadResponseDto::getMessageCount)
+                .map(MessageUnReadResponseDto::getMessageUnReadCount)
                 .collect(toList()), equalTo(messages.stream()
                 .map(message -> unReadCount)
                 .collect(toList())));
@@ -310,9 +305,9 @@ public class MessageServiceTest {
 
         room.invite(invitedUser);
 
-        Participant roomOwnerParticipant = ParticipantMatcher.matchingRoomOwner(room);
+        Participant roomOwnerParticipant = ParticipantMatchers.matchingRoomOwner(room);
 
-        Participant participant = ParticipantMatcher.matchingNotRoomOwner(room).get(0);
+        Participant participant = ParticipantMatchers.matchingNotRoomOwner(room).get(0);
 
         long participantId = 2L;
         ReflectionTestUtils.setField(participant, "id", participantId);

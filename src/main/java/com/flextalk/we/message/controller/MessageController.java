@@ -25,12 +25,22 @@ public class MessageController {
 
     private final MessageService messageService;
 
-    @PostMapping(value = "/v1/rooms/{roomId}/participants/{participantId}/messages")
+    @PostMapping(value = "/v1/rooms/{roomId}/participants/{participantId}/messages/text")
     @ResponseStatus(HttpStatus.CREATED)
     public SuccessResponse<Long> sendMessage(@PathVariable Long roomId,
                                              @PathVariable Long participantId,
-                                             @RequestBody @Valid MessageSaveRequestDto messageSaveRequestDto,
-                                             MultipartHttpServletRequest multipartHttpServletRequest) {
+                                             @RequestBody @Valid MessageSaveRequestDto messageSaveRequestDto) {
+
+        Long sendMessageId = messageService.sendTextMessage(roomId, participantId, messageSaveRequestDto);
+        return SuccessResponse.of(HttpStatus.CREATED.value(), sendMessageId);
+    }
+
+    @PostMapping(value = "/v1/rooms/{roomId}/participants/{participantId}/messages/file")
+    @ResponseStatus(HttpStatus.CREATED)
+    public SuccessResponse<Long> sendFileMessage(@PathVariable Long roomId,
+                                                 @PathVariable Long participantId,
+                                                 @RequestBody @Valid MessageSaveRequestDto messageSaveRequestDto,
+                                                 MultipartHttpServletRequest multipartHttpServletRequest) {
 
         MultipartFile multipartFile = Optional.ofNullable(multipartHttpServletRequest)
                 .map(multipart -> multipart.getFile("file"))
@@ -38,16 +48,12 @@ public class MessageController {
 
         Long sendMessageId = null;
 
-        if(Objects.isNull(multipartFile)) {
-             sendMessageId = messageService.sendTextMessage(roomId, participantId, messageSaveRequestDto);
+        try {
+            byte[] bytes = multipartFile.getBytes();
+            sendMessageId = messageService.sendFileMessage(roomId, participantId, messageSaveRequestDto, multipartFile.getOriginalFilename(), bytes);
         }
-        else {
-            try {
-                byte[] bytes = multipartFile.getBytes();
-                sendMessageId = messageService.sendFileMessage(roomId, participantId, messageSaveRequestDto, multipartFile.getOriginalFilename(), bytes);
-            } catch (IOException e) {
+        catch (IOException e) {
 
-            }
         }
 
         return SuccessResponse.of(HttpStatus.CREATED.value(), sendMessageId);
