@@ -145,68 +145,68 @@ public class RoomRepositoryTest {
         assertThat(findParticipants.size(), equalTo(0));
     }
 
-    @DisplayName("채팅방에 사용자 초대 시 동시성 문제 테스트")
-    @Test
-    public void inviteParticipantsConcurrentTest() throws Exception {
-
-        //given
-        MockUserFactory mockUserFactory = new MockUserFactory();
-        User roomCreator = mockUserFactory.create("test1@gmail.com", "1!2@3!4#1");
-        User invitedUserA = mockUserFactory.create("test2@gmail.com", "1!2@3!4#1");
-        User invitedUserB = mockUserFactory.create("test3@gmail.com", "1!2@3!4#1");
-        User invitedUserC = mockUserFactory.create("test4@gmail.com", "1!2@3!4#1");
-
-        List<User> users = Arrays.asList(invitedUserA, invitedUserB, invitedUserC);
-
-        userRepository.save(roomCreator);
-
-        for(User user : users) {
-            userRepository.save(user);
-        }
-
-        String roomName = "테스트 채팅방";
-        String roomType = "NORMAL";
-        int roomLimitCount = 2;
-        MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
-        Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
-        roomRepository.save(room);
-
-        int nThreads = 3;
-        ExecutorService executor = Executors.newFixedThreadPool(nThreads);
-
-        CountDownLatch ready = new CountDownLatch(nThreads);
-        CountDownLatch start = new CountDownLatch(1);
-        CountDownLatch done = new CountDownLatch(nThreads);
-
-        AtomicInteger atomicInteger = new AtomicInteger(0);
-
-        for(int i=0;i<nThreads;i++) {
-            executor.execute(() -> {
-                ready.countDown();
-                try {
-                    start.await();
-                    test(room, users.get(atomicInteger.getAndIncrement()));
-                } catch (InterruptedException | IllegalArgumentException | DataIntegrityViolationException e) {
-                    Thread.currentThread().interrupt();
-                } finally {
-                    done.countDown();
-                }
-            });
-        }
-
-        //when
-        ready.await();
-        start.countDown();
-        done.await();
-
-        executor.shutdown();
-
-        List<Participant> participants = participantRepository.findByRoom(room);
-        final int normal = 2;
-
-        //then
-        assertThat(participants.size(), equalTo(normal));
-    }
+//    @DisplayName("채팅방에 사용자 초대 시 동시성 문제 테스트")
+//    @Test
+//    public void inviteParticipantsConcurrentTest() throws Exception {
+//
+//        //given
+//        MockUserFactory mockUserFactory = new MockUserFactory();
+//        User roomCreator = mockUserFactory.create("test1@gmail.com", "1!2@3!4#1");
+//        User invitedUserA = mockUserFactory.create("test2@gmail.com", "1!2@3!4#1");
+//        User invitedUserB = mockUserFactory.create("test3@gmail.com", "1!2@3!4#1");
+//        User invitedUserC = mockUserFactory.create("test4@gmail.com", "1!2@3!4#1");
+//
+//        List<User> users = Arrays.asList(invitedUserA, invitedUserB, invitedUserC);
+//
+//        userRepository.save(roomCreator);
+//
+//        for(User user : users) {
+//            userRepository.save(user);
+//        }
+//
+//        String roomName = "테스트 채팅방";
+//        String roomType = "NORMAL";
+//        int roomLimitCount = 2;
+//        MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
+//        Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
+//        roomRepository.save(room);
+//
+//        int nThreads = 3;
+//        ExecutorService executor = Executors.newFixedThreadPool(nThreads);
+//
+//        CountDownLatch ready = new CountDownLatch(nThreads);
+//        CountDownLatch start = new CountDownLatch(1);
+//        CountDownLatch done = new CountDownLatch(nThreads);
+//
+//        AtomicInteger atomicInteger = new AtomicInteger(0);
+//
+//        for(int i=0;i<nThreads;i++) {
+//            executor.execute(() -> {
+//                ready.countDown();
+//                try {
+//                    start.await();
+//                    test(room, users.get(atomicInteger.getAndIncrement()));
+//                } catch (InterruptedException | IllegalArgumentException | DataIntegrityViolationException e) {
+//                    Thread.currentThread().interrupt();
+//                } finally {
+//                    done.countDown();
+//                }
+//            });
+//        }
+//
+//        //when
+//        ready.await();
+//        start.countDown();
+//        done.await();
+//
+//        executor.shutdown();
+//
+//        List<Participant> participants = participantRepository.findByRoom(room);
+//        final int normal = 2;
+//
+//        //then
+//        assertThat(participants.size(), equalTo(normal));
+//    }
 
     private void test(Room room, User user) {
         room.invite(user);
