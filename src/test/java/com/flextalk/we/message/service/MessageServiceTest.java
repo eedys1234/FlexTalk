@@ -14,6 +14,7 @@ import com.flextalk.we.room.domain.entity.Room;
 import com.flextalk.we.room.service.RoomService;
 import com.flextalk.we.user.cmmn.MockUserFactory;
 import com.flextalk.we.user.domain.entity.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,6 +52,13 @@ public class MessageServiceTest {
 
     @Mock
     private MessageRepository messageRepository;
+
+    private String messageFilePath;
+
+    @BeforeEach
+    public void init() {
+        messageFilePath = "/test/";
+    }
 
     @DisplayName("메시지 생성 테스트(TEXT)")
     @Test
@@ -97,59 +105,59 @@ public class MessageServiceTest {
         verify(messageRepository, times(1)).save(any());
     }
 
-//    @DisplayName("메시지 생성 테스트(FILE)")
-//    @Test
-//    public void sendFileMessageTest() {
-//
-//        //given
-//        MockUserFactory mockUserFactory = new MockUserFactory();
-//        User roomCreator = mockUserFactory.createAddedId(1L);
-//
-//        String roomName = "테스트 채팅방";
-//        String roomType = "NORMAL";
-//        int roomLimitCount = 2;
-//        MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
-//        Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
-//        long roomId = 1L;
-//        ReflectionTestUtils.setField(room, "id", roomId);
-//
-//        Participant roomOwnerParticipant = ParticipantMatcher.matingRoomOwner(room);
-//        long participantId = 1L;
-//        ReflectionTestUtils.setField(roomOwnerParticipant, "id", participantId);
-//
-//        MockMessageFactory mockMessageFactory = new MockMessageFactory(room, roomOwnerParticipant);
-//
-//        String filePath = "test";
-//        List<Message> messages = mockMessageFactory.createFileListAddedId(filePath);
-//
-//        Message message = spy(messages.get(0));
-//
-//
-//        MessageSaveRequestDto messageSaveRequestDto = new MessageSaveRequestDto();
-//        ReflectionTestUtils.setField(messageSaveRequestDto, "messageContent", message.getMessageContent());
-//        ReflectionTestUtils.setField(messageSaveRequestDto, "messageType", message.getMessageType().name());
-//
-//        boolean isCreated = true;
-//
-//        doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
-//        doReturn(roomOwnerParticipant).when(participantService).findParticipant(anyLong());
-//        doReturn(isCreated).when(message).saveFile(any());
-//        doReturn(message).when(messageRepository).save(any());
-//
-//        String orgFileName = "개발로드맵.txt";
-//
-//        //when
-//        Long sendMessageId = messageService.sendFileMessage(room.getId(), roomOwnerParticipant.getId(), messageSaveRequestDto, orgFileName,null);
-//
-//        //then
-//        assertThat(sendMessageId, equalTo(message.getId()));
-//
-//        //verify
-//        verify(roomService, times(1)).findRoomAddedAddiction(anyLong());
-//        verify(participantService, times(1)).findParticipant(anyLong());
-//        verify(messageRepository, times(1)).save(any());
+    @DisplayName("메시지 생성 테스트(FILE)")
+    @Test
+    public void sendFileMessageTest() {
+
+        //given
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.createAddedId(1L);
+
+        String roomName = "테스트 채팅방";
+        String roomType = "NORMAL";
+        int roomLimitCount = 2;
+        MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
+        Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
+        long roomId = 1L;
+        ReflectionTestUtils.setField(room, "id", roomId);
+
+        Participant roomOwnerParticipant = ParticipantMatchers.matchingRoomOwner(room);
+        long participantId = 1L;
+        ReflectionTestUtils.setField(roomOwnerParticipant, "id", participantId);
+
+        MockMessageFactory mockMessageFactory = new MockMessageFactory(room, roomOwnerParticipant);
+
+        List<Message> messages = mockMessageFactory.createFileListAddedId(messageFilePath);
+
+        Message message = spy(messages.get(0));
+
+        MessageSaveRequestDto messageSaveRequestDto = new MessageSaveRequestDto();
+        ReflectionTestUtils.setField(messageSaveRequestDto, "messageContent", message.getMessageContent());
+        ReflectionTestUtils.setField(messageSaveRequestDto, "messageType", message.getMessageType().name());
+
+        boolean isCreated = true;
+
+        doReturn(room).when(roomService).findRoomAddedAddiction(anyLong());
+        doReturn(roomOwnerParticipant).when(participantService).findParticipant(anyLong());
+        doReturn(message).when(messageRepository).save(any(Message.class));
+        lenient().doReturn(isCreated).when(spy(message)).saveFile(any());
+
+        String orgFileName = "개발로드맵.txt";
+        byte[] file = "Hello, World!".getBytes();
+        MessageService mockMessageService = new MockMessageService(roomService, participantService, messageRepository, messageReadRepository, messageFilePath);
+
+        //when
+        Long sendMessageId = mockMessageService.sendFileMessage(room.getId(), roomOwnerParticipant.getId(), messageSaveRequestDto, orgFileName,file);
+
+        //then
+        assertThat(sendMessageId, equalTo(message.getId()));
+
+        //verify
+        verify(roomService, times(1)).findRoomAddedAddiction(anyLong());
+        verify(participantService, times(1)).findParticipant(anyLong());
+        verify(messageRepository, times(1)).save(any(Message.class));
 //        verify(message, times(1)).saveFile(any());
-//    }
+    }
 
     @DisplayName("메시지(TEXT) 삭제 테스트")
     @Test
@@ -209,8 +217,7 @@ public class MessageServiceTest {
 
         MockMessageFactory mockMessageFactory = new MockMessageFactory(room, roomOwnerParticipant);
 
-        String filePath = "messageFilePath";
-        List<Message> messages = mockMessageFactory.createFileListAddedId(filePath);
+        List<Message> messages = mockMessageFactory.createFileListAddedId(messageFilePath);
 
         boolean isDeleted = true;
         Message message = spy(messages.get(0));
