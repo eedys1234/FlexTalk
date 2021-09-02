@@ -58,19 +58,17 @@ public class ParticipantService {
             @CacheEvict(cacheNames = CacheNames.PARTICIPANTS, key = "#roomId")
         }
     )
-//    @Retryable(
-//            value = {OptimisticEntityLockException.class},
-//            maxAttempts = 3,
-//            backoff = @Backoff(delay = 500)
-//    )
     @Transactional
     public Long inviteParticipants(Long roomId, String userIds) {
 
         final String[] splitUserIds = userIds.split(",");
         final List<User> users = userService.findUsers(splitUserIds);
         userService.findMatchingUsers(users, splitUserIds);
+
         final Room room = roomService.findRoomAddedAddiction(roomId);
+
         room.invite(users);
+
         return roomId;
     }
 
