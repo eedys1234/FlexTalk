@@ -157,7 +157,7 @@ public class ParticipantService {
         promoteParticipant.assignOwner();
         roomOwnerParticipant.resign();
 
-        return promoteParticipant.getId();
+        return roomId;
     }
 
     /**

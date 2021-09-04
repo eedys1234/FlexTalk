@@ -29,6 +29,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
     compile 'org.springframework.boot:spring-boot-starter-data-jdbc'
     compile 'org.springframework.boot:spring-boot-starter-data-redis'
+    compile 'org.springframework.boot:spring-boot-starter-cache'
     compile  'org.springframework.boot:spring-boot-starter-log4j2'
     compileOnly 'org.projectlombok:lombok' //의존성 충돌나기 때문에
     compile group:'it.ozimov', name:'embedded-redis', version: '0.7.2'
@@ -44,7 +45,6 @@ dependencies {
     compile 'io.jsonwebtoken:jjwt:0.9.1'
     compile 'org.ehcache:ehcache'
     compile 'javax.cache:cache-api'
-    compile 'org.springframework.boot:spring-boot-starter-cache'
     compile 'org.springframework.retry:spring-retry:1.1.5.RELEASE'
     annotationProcessor 'org.projectlombok:lombok'
     testCompile ('org.springframework.boot:spring-boot-starter-test') {
