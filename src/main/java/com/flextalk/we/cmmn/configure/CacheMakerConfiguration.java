@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 @EnableCaching
 @Configuration
-public class CacheConfiguration {
+public class CacheMakerConfiguration {
 
     @Bean
     public CacheManager cacheManager() {
