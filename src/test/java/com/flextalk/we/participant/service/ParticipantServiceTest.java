@@ -226,10 +226,10 @@ public class ParticipantServiceTest {
         doReturn(Optional.ofNullable(promoteParticipant)).when(participantRepository).findOne(anyLong());
 
         //when
-        Long promoteParticipantId = participantService.promotePermission(room.getId(), roomOwnerParticipant.getId(), promoteRequestDto);
+        Long promoteRoomId = participantService.promotePermission(room.getId(), roomOwnerParticipant.getId(), promoteRequestDto);
 
         //then
-        assertThat(promoteParticipantId, equalTo(promoteParticipant.getId()));
+        assertThat(promoteRoomId, equalTo(room.getId()));
 
         //verify
         verify(participantRepository, times(1)).findOwner(anyLong());
