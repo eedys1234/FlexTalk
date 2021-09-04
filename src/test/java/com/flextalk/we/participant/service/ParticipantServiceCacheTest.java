@@ -1,6 +1,6 @@
 package com.flextalk.we.participant.service;
 
-import com.flextalk.we.cmmn.configure.CacheConfiguration;
+import com.flextalk.we.cmmn.configure.CacheMakerConfiguration;
 import com.flextalk.we.cmmn.util.CacheNames;
 import com.flextalk.we.participant.cmmn.ParticipantMatchers;
 import com.flextalk.we.participant.domain.entity.Participant;
@@ -17,14 +17,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -32,9 +28,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -43,14 +37,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-@Import({CacheConfiguration.class, ParticipantService.class})
+@Import({CacheMakerConfiguration.class, ParticipantService.class})
 @ExtendWith(SpringExtension.class)
 @EnableCaching
 @ImportAutoConfiguration(classes = {
     CacheAutoConfiguration.class,
     RedisAutoConfiguration.class
 })
-//@ExtendWith(MockitoExtension.class)
 public class ParticipantServiceCacheTest {
 
     @MockBean
@@ -70,7 +63,7 @@ public class ParticipantServiceCacheTest {
 
     @AfterEach
     public void after() {
-        cacheManager.getCache(CacheNames.PARTICIPANTS).clear();
+        Objects.requireNonNull(cacheManager.getCache(CacheNames.PARTICIPANTS)).clear();
     }
 
     @DisplayName("채팅방의 참여자 리스트 조회(캐시)")
@@ -140,7 +133,7 @@ public class ParticipantServiceCacheTest {
 
         User invitedUser = mockUserFactory.createAddedId(5L);
 
-        doReturn(Arrays.asList(invitedUser)).when(mockUserService).findUsers(any());
+        doReturn(Collections.singletonList(invitedUser)).when(mockUserService).findUsers(any());
         doReturn(room).when(mockRoomService).findRoomAddedAddiction(anyLong());
 
         //when
@@ -185,7 +178,7 @@ public class ParticipantServiceCacheTest {
         Participant participant = ParticipantMatchers.matchingParticipant(room, users.get(0));
         ReflectionTestUtils.setField(participant, "id", participantId);
 
-        doReturn(Optional.ofNullable(participant)).when(mockParticipantRepository).findOne(anyLong());
+        doReturn(Optional.of(participant)).when(mockParticipantRepository).findOne(anyLong());
         doReturn(room).when(mockRoomService).findRoomAddedAddiction(anyLong());
 
         //when
@@ -235,8 +228,8 @@ public class ParticipantServiceCacheTest {
         Participant participant = ParticipantMatchers.matchingParticipant(room, users.get(0));
         ReflectionTestUtils.setField(participant, "id", deportParticipantId);
 
-        doReturn(Arrays.asList(participant)).when(mockParticipantRepository).findByIds(any());
-        doReturn(Optional.ofNullable(roomOwnerParticipant)).when(mockParticipantRepository).findOwner(anyLong());
+        doReturn(Collections.singletonList(participant)).when(mockParticipantRepository).findByIds(any());
+        doReturn(Optional.of(roomOwnerParticipant)).when(mockParticipantRepository).findOwner(anyLong());
         doReturn(room).when(mockRoomService).findRoomAddedAddiction(anyLong());
 
         //when
@@ -289,8 +282,8 @@ public class ParticipantServiceCacheTest {
         ParticipantPromoteRequestDto participantPromoteRequestDto = new ParticipantPromoteRequestDto();
         ReflectionTestUtils.setField(participantPromoteRequestDto, "promoteParticipantId", promoteParticipantId);
 
-        doReturn(Optional.ofNullable(roomOwnerParticipant)).when(mockParticipantRepository).findOwner(anyLong());
-        doReturn(Optional.ofNullable(participant)).when(mockParticipantRepository).findOne(anyLong());
+        doReturn(Optional.of(roomOwnerParticipant)).when(mockParticipantRepository).findOwner(anyLong());
+        doReturn(Optional.of(participant)).when(mockParticipantRepository).findOne(anyLong());
 
         //when
         Long promoteRoomId = participantService.promotePermission(room.getId(), roomOwnerParticipant.getId(), participantPromoteRequestDto);
@@ -335,7 +328,7 @@ public class ParticipantServiceCacheTest {
         Participant participant = ParticipantMatchers.matchingParticipant(room, users.get(0));
         ReflectionTestUtils.setField(participant, "id", participantId);
 
-        doReturn(Optional.ofNullable(participant)).when(mockParticipantRepository).findOne(anyLong());
+        doReturn(Optional.of(participant)).when(mockParticipantRepository).findOne(anyLong());
         doReturn(room).when(mockRoomService).findRoomAddedAddiction(anyLong());
 
         //when
@@ -381,7 +374,7 @@ public class ParticipantServiceCacheTest {
         Participant participant = ParticipantMatchers.matchingParticipant(room, users.get(0));
         ReflectionTestUtils.setField(participant, "id", participantId);
 
-        doReturn(Optional.ofNullable(participant)).when(mockParticipantRepository).findOne(anyLong());
+        doReturn(Optional.of(participant)).when(mockParticipantRepository).findOne(anyLong());
         doReturn(room).when(mockRoomService).findRoomAddedAddiction(anyLong());
 
         room.addBookMark(participant);
@@ -429,7 +422,7 @@ public class ParticipantServiceCacheTest {
         Participant participant = ParticipantMatchers.matchingParticipant(room, users.get(0));
         ReflectionTestUtils.setField(participant, "id", participantId);
 
-        doReturn(Optional.ofNullable(participant)).when(mockParticipantRepository).findOne(anyLong());
+        doReturn(Optional.of(participant)).when(mockParticipantRepository).findOne(anyLong());
         doReturn(room).when(mockRoomService).findRoomAddedAddiction(anyLong());
 
         room.deleteAlarm(participant);
@@ -478,7 +471,7 @@ public class ParticipantServiceCacheTest {
         Participant participant = ParticipantMatchers.matchingParticipant(room, users.get(0));
         ReflectionTestUtils.setField(participant, "id", participantId);
 
-        doReturn(Optional.ofNullable(participant)).when(mockParticipantRepository).findOne(anyLong());
+        doReturn(Optional.of(participant)).when(mockParticipantRepository).findOne(anyLong());
         doReturn(room).when(mockRoomService).findRoomAddedAddiction(anyLong());
 
         //when
