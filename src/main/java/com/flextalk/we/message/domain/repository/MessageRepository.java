@@ -47,6 +47,11 @@ public class MessageRepository {
         );
     }
 
+    public List<Message> findAll() {
+        return queryFactory.selectFrom(message)
+                .fetch();
+    }
+
     private BooleanExpression eqParticipant(Long participantId) {
         return Objects.isNull(participantId) ? null : message.participant.id.eq(participantId);
     }

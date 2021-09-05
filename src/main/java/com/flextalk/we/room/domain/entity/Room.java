@@ -48,13 +48,10 @@ public class Room extends BaseEntity {
     @Column(name = "allow_participant_count")
     private int allowParticipantCount;
 
-    private int version;
-
     private Room(String roomName, String roomType, Integer roomLimitCount) {
         this.roomName = Objects.requireNonNull(roomName);
         this.roomTypeInfo = new RoomTypeInfo(roomType, roomLimitCount);
         this.allowParticipantCount = this.roomTypeInfo.getRoomLimitCount();
-        this.version = 0;
     }
 
     /**

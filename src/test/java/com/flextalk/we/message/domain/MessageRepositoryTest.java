@@ -1,4 +1,4 @@
-package com.flextalk.we.message.repository;
+package com.flextalk.we.message.domain;
 
 import com.flextalk.we.cmmn.exception.NotEntityException;
 import com.flextalk.we.message.cmmn.MockMessageBulkFactory;
@@ -25,8 +25,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -282,49 +286,6 @@ public class MessageRepositoryTest {
 
         //when, then
         assertThrows(IllegalArgumentException.class, () -> sendMessage.read(invitedParticipant));
-    }
-
-    @DisplayName("메시지 읽기 테스트")
-    @Test
-    public void readMessageTest() {
-
-        //given
-        MockUserFactory mockUserFactory = new MockUserFactory();
-        User roomCreator = mockUserFactory.create("test1@gmail.com", "123!@#DDDDD");
-        User invitedUser = mockUserFactory.create("test2@gmail.com", "123!@#DDDDD");
-
-        userRepository.save(roomCreator);
-        userRepository.save(invitedUser);
-
-        MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
-        String roomName = "테스트 채팅방";
-        String roomType = "NORMAL";
-        int roomLimitCount = 2;
-        Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
-
-        room.invite(invitedUser);
-        roomRepository.save(room);
-
-        Participant roomOwnerParticipant = ParticipantMatchers.matchingRoomOwner(room);
-        Participant invitedParticipant = ParticipantMatchers.matchingNotRoomOwner(room).get(0);
-
-        MockMessageFactory mockMessageFactory = new MockMessageBulkFactory(room, invitedParticipant);
-        List<Message> messages = mockMessageFactory.createTextList();
-
-        for(Message message : messages) {
-            messageRepository.save(message);
-        }
-
-        List<MessageReadBulkInsertDto> messageReads = messages.stream()
-                .map(message -> new MessageReadBulkInsertDto(roomOwnerParticipant.getId(), message.getId()))
-                .collect(toList());
-
-        //when
-        messageReadRepository.saveAll(messageReads);
-
-        //then
-        List<MessageRead> allReads = messageReadRepository.findAll();
-        assertThat(allReads.size(), equalTo(messages.size()));
     }
 
     @DisplayName("특정 메시지 가져오기 테스트")

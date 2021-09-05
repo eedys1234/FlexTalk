@@ -9,7 +9,6 @@ import org.springframework.retry.annotation.EnableRetry;
 
 
 @EnableRetry
-@EnableJpaAuditing
 @EnableCaching
 @SpringBootApplication
 public class FlextalkApplication {

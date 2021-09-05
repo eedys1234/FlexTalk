@@ -47,7 +47,7 @@ public class Message extends BaseEntity {
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
     private List<MessageRead> messageReads = new ArrayList<>();
 
-    @OneToMany(mappedBy = "parentMessage")
+    @OneToMany(mappedBy = "parentMessage", cascade = CascadeType.PERSIST)
     private List<Message> childMessages = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

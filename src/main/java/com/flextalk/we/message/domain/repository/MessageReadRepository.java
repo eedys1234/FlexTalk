@@ -11,10 +11,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,12 +59,14 @@ public class MessageReadRepository {
 
     private int batchInsert(int batchCount, List<MessageReadBulkInsertDto> subList) {
 
-        jdbcTemplate.batchUpdate("INSERT INTO ft_message_read (`participant_id`,`message_id`) VALUES(?, ?)",
+        jdbcTemplate.batchUpdate("INSERT INTO ft_message_read (participant_id, message_id) VALUES(?, ?)",
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
+//                        ZoneId zoneId = ZoneId.systemDefault();
                         ps.setLong(1, subList.get(i).getParticipantId());
                         ps.setLong(2, subList.get(i).getMessageId());
+//                        ps.setTimestamp(3, new Timestamp(LocalDateTime.now().atZone(zoneId).toEpochSecond()));
                     }
 
                     @Override

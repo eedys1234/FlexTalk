@@ -13,7 +13,7 @@ import java.time.Duration;
 import static org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair.fromSerializer;
 
 @Configuration
-public class RedisMakerConfiguration {
+public class RedisConfig {
 
     @Bean
     public RedisCacheConfiguration cacheConfiguration() {

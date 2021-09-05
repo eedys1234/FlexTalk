@@ -17,7 +17,7 @@ import java.util.Objects;
 @Table(name = "ft_participant", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"room_id", "user_id"}),
 })
-@EqualsAndHashCode(of = {"id"}, callSuper = false)
+@EqualsAndHashCode(of = {"id"})
 public class Participant extends BaseEntity {
 
     @Id
