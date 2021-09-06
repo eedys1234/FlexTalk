@@ -1,15 +1,12 @@
 package com.flextalk.we.message.domain;
 
 import com.flextalk.we.cmmn.exception.NotEntityException;
-import com.flextalk.we.message.cmmn.MockMessageBulkFactory;
 import com.flextalk.we.message.cmmn.MockMessageFactory;
 import com.flextalk.we.message.cmmn.MockMessageReader;
 import com.flextalk.we.message.domain.entity.Message;
-import com.flextalk.we.message.domain.entity.MessageRead;
 import com.flextalk.we.message.domain.repository.MessageFileRepository;
 import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
-import com.flextalk.we.message.dto.MessageReadBulkInsertDto;
 import com.flextalk.we.message.dto.MessageReadResponseDto;
 import com.flextalk.we.participant.cmmn.ParticipantMatchers;
 import com.flextalk.we.participant.domain.entity.Participant;

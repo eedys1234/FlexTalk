@@ -3,6 +3,7 @@ package com.flextalk.we.message.service;
 import com.flextalk.we.message.cmmn.MockMessageBulkFactory;
 import com.flextalk.we.message.cmmn.MockMessageFactory;
 import com.flextalk.we.message.domain.entity.Message;
+import com.flextalk.we.message.domain.repository.MessageReadJdbcRepository;
 import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
 import com.flextalk.we.message.dto.*;
@@ -49,6 +50,9 @@ public class MessageServiceTest {
 
     @Mock
     private MessageReadRepository messageReadRepository;
+
+    @Mock
+    private MessageReadJdbcRepository messageReadJdbcRepository;
 
     @Mock
     private MessageRepository messageRepository;
@@ -144,7 +148,7 @@ public class MessageServiceTest {
 
         String orgFileName = "개발로드맵.txt";
         byte[] file = "Hello, World!".getBytes();
-        MessageService mockMessageService = new MockMessageService(roomService, participantService, messageRepository, messageReadRepository, messageFilePath);
+        MessageService mockMessageService = new MockMessageService(roomService, participantService, messageRepository, messageReadRepository, messageReadJdbcRepository, messageFilePath);
 
         //when
         Long sendMessageId = mockMessageService.sendFileMessage(room.getId(), roomOwnerParticipant.getId(), messageSaveRequestDto, orgFileName,file);
@@ -327,7 +331,7 @@ public class MessageServiceTest {
                 .collect(toList());
 
         doReturn(roomOwnerParticipant).when(participantService).findParticipant(anyLong());
-        doNothing().when(messageReadRepository).saveAll(any());
+        doNothing().when(messageReadJdbcRepository).saveAll(any());
 
         MessageReadUpdateDto messageReadUpdateDto = new MessageReadUpdateDto();
         ReflectionTestUtils.setField(messageReadUpdateDto, "participantId", participantId);
@@ -345,7 +349,7 @@ public class MessageServiceTest {
 
         //verify
         verify(participantService, times(1)).findParticipant(anyLong());
-        verify(messageReadRepository, times(1)).saveAll(any());
+        verify(messageReadJdbcRepository, times(1)).saveAll(any());
     }
 
 

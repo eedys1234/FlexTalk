@@ -1,5 +1,6 @@
 package com.flextalk.we.message.service;
 
+import com.flextalk.we.message.domain.repository.MessageReadJdbcRepository;
 import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
 import com.flextalk.we.message.dto.MessageSaveRequestDto;
@@ -9,8 +10,8 @@ import com.flextalk.we.room.service.RoomService;
 public class MockMessageService extends MessageService {
 
     public MockMessageService(RoomService roomService, ParticipantService participantService, MessageRepository messageRepository, MessageReadRepository messageReadRepository,
-                              String messageFilePath) {
-        super(roomService, participantService, messageRepository, messageReadRepository);
+                              MessageReadJdbcRepository messageReadJdbcRepository, String messageFilePath) {
+        super(roomService, participantService, messageRepository, messageReadRepository, messageReadJdbcRepository);
         super.messageFilePath = messageFilePath;
     }
 

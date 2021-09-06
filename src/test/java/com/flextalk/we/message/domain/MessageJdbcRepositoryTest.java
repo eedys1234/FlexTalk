@@ -1,92 +1,87 @@
-//package com.flextalk.we.message.domain;
-//
-//import com.flextalk.we.message.domain.entity.MessageRead;
-//import com.flextalk.we.message.domain.repository.MessageReadRepository;
-//import com.flextalk.we.message.dto.MessageReadBulkInsertDto;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.DisplayName;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.jdbc.core.JdbcTemplate;
-//import org.springframework.jdbc.core.RowMapper;
-//import org.springframework.test.context.ActiveProfiles;
-//import org.springframework.transaction.annotation.Transactional;
-//
-//import java.sql.ResultSet;
-//import java.sql.SQLException;
-//import java.util.List;
-//
-//import static java.util.stream.Collectors.toList;
-//import static org.hamcrest.MatcherAssert.assertThat;
-//import static org.hamcrest.Matchers.*;
-//
-//@Transactional
-//@SpringBootTest
-//@ActiveProfiles("test")
-//public class MessageJdbcRepositoryTest {
-//
-//    @Autowired
-//    private JdbcTemplate jdbcTemplate;
-//
-//    @Autowired
-//    private MessageReadRepository messageReadRepository;
-//
-//    private final String user_insert_sql = "insert into ft_user(user_email, user_password) values(?, ?)";
-//
-//    private final String room_insert_sql = "insert into ft_room(allow_participant_count, user_id, is_delete, room_name, " +
-//            "room_limit_count, room_type) values(?, ?, ?, ?, ?, ?)";
-//
-//    private final String participant_insert_sql = "insert into ft_participant(is_alarm, is_bookmark, is_owner, room_id, " +
-//            "user_id) values(?, ?, ?, ?, ?)";
-//
-//    private final String message_insert_sql = "insert into ft_message(is_delete, message_content, message_type, " +
-//            "participant_id, room_id) values(?, ?, ?, ?, ?)";
-//
-//    private final String message_select_sql = "select * from ft_message";
-//
-//    @BeforeEach
-//    public void init() {
-//
-//        jdbcTemplate.update(user_insert_sql, "test1@gmail.com", "123!@#DDDDD");
-//        jdbcTemplate.update(user_insert_sql, "test2@gmail.com", "123!@#DDDDD");
-//
-//        String roomName = "테스트 채팅방";
-//        String roomType = "NORMAL";
-//        int roomLimitCount = 2;
-//
-//        jdbcTemplate.update(room_insert_sql, roomLimitCount, 1, false, roomName, roomLimitCount, roomType);
-//
-//        jdbcTemplate.update(participant_insert_sql, true, false, true, 1, 1);
-//        jdbcTemplate.update(participant_insert_sql, true, false, false, 1, 2);
-//
-//        for(int i=0;i<10000;i++) {
-//            jdbcTemplate.update(message_insert_sql, false, "테스트", "TEXT", 1, 1);
-//        }
-//
-//    }
-//
-//    @DisplayName("메시지 읽기 테스트")
-//    @Test
-//    public void readMessageTest() {
-//
-//        List<Long> message_ids = jdbcTemplate.query(message_select_sql, new RowMapper<Long>() {
-//            @Override
-//            public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
-//                return rs.getLong("message_id");
-//            }
-//        });
-//
-//        List<MessageReadBulkInsertDto> messageReads = message_ids.stream()
-//                .map(id -> new MessageReadBulkInsertDto(1L, id))
-//                .collect(toList());
-//
-//        //when
-//        messageReadRepository.saveAll(messageReads);
-//
-//        //then
-//        List<MessageRead> allReads = messageReadRepository.findAll();
-//        assertThat(allReads.size(), equalTo(message_ids.size()));
-//    }
-//
-//}
+package com.flextalk.we.message.domain;
+
+import com.flextalk.we.message.cmmn.MockMessageBulkFactory;
+import com.flextalk.we.message.cmmn.MockMessageFactory;
+import com.flextalk.we.message.domain.entity.Message;
+import com.flextalk.we.message.domain.repository.MessageReadJdbcRepository;
+import com.flextalk.we.message.dto.MessageReadBulkInsertDto;
+import com.flextalk.we.participant.cmmn.ParticipantMatchers;
+import com.flextalk.we.participant.domain.entity.Participant;
+import com.flextalk.we.room.cmmn.MockRoomFactory;
+import com.flextalk.we.room.domain.entity.Room;
+import com.flextalk.we.user.cmmn.MockUserFactory;
+import com.flextalk.we.user.domain.entity.User;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static java.util.stream.Collectors.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+@ExtendWith(MockitoExtension.class)
+@ActiveProfiles("test")
+@Transactional
+public class MessageJdbcRepositoryTest {
+
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
+    private MockMessageReadJdbcRepository messageReadJdbcRepository;
+
+    @BeforeEach
+    public void init() {
+        int batchSize = 5000;
+        messageReadJdbcRepository = new MockMessageReadJdbcRepository(jdbcTemplate, batchSize);
+    }
+
+    @DisplayName("대량의 메시지 읽기 테스트")
+    @Test
+    public void readMessageTestByBulkInsert() {
+
+        //given
+        MockUserFactory mockUserFactory = new MockUserFactory();
+        User roomCreator = mockUserFactory.create("test1@gmail.com", "123!@#DDDDD");
+        User invitedUser = mockUserFactory.create("test2@gmail.com", "123!@#DDDDD");
+
+        String roomName = "테스트 채팅방";
+        String roomType = "GROUP";
+        int roomLimitCount = 10;
+        MockRoomFactory mockRoomFactory = new MockRoomFactory(roomCreator);
+        Room room = mockRoomFactory.create(roomName, roomType, roomLimitCount);
+
+        room.invite(invitedUser);
+
+        Participant roomOwnerParticipant = ParticipantMatchers.matchingRoomOwner(room);
+        Participant invitedParticipant = ParticipantMatchers.matchingNotRoomOwner(room).get(0);
+
+        long invitedParticipantId = 1L;
+        ReflectionTestUtils.setField(invitedParticipant, "id", invitedParticipantId);
+
+        MockMessageFactory mockMessageFactory = new MockMessageBulkFactory(room, roomOwnerParticipant);
+        List<Message> messages = mockMessageFactory.createTextListAddedId();
+
+        List<MessageReadBulkInsertDto> createdMessageRead = messages.stream()
+                .map(message -> new MessageReadBulkInsertDto(invitedParticipant.getId(), message.getId()))
+                .collect(toList());
+
+        //when
+        messageReadJdbcRepository.saveAll(createdMessageRead);
+
+        //verify
+        verify(jdbcTemplate, times(2)).batchUpdate(anyString(), any(BatchPreparedStatementSetter.class));
+    }
+}
