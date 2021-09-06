@@ -15,6 +15,18 @@ public class MockMessageBulkFactory extends MockMessageFactory {
     }
 
     @Override
+    public List<Message> createTextList() {
+
+        List<Message> totalMessages = new ArrayList<>();
+
+        for(int i=0; i<1000; i++) {
+            totalMessages.addAll(super.createTextList());
+        }
+
+        return totalMessages;
+    }
+
+    @Override
     public List<Message> createTextListAddedId() {
 
         List<Message> totalMessages = new ArrayList<>();

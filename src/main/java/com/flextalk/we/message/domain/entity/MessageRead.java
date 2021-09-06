@@ -15,7 +15,7 @@ import java.util.Objects;
 @Table(name = "ft_message_read", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"message_id", "participant_id"})
 })
-public class MessageRead extends BaseEntity {
+public class MessageRead extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

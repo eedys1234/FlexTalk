@@ -2,9 +2,11 @@ package com.flextalk.we.message.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
 @NoArgsConstructor
+@ToString(of = {"messageId", "participantId"})
 public class MessageReadBulkInsertDto {
 
     private Long participantId;

@@ -1,4 +1,4 @@
-package com.flextalk.we.room.repository;
+package com.flextalk.we.room.domain;
 
 import com.flextalk.we.participant.domain.entity.Participant;
 import com.flextalk.we.participant.domain.repository.ParticipantRepository;
@@ -13,15 +13,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Comparator.*;
 import static java.util.stream.Collectors.toList;

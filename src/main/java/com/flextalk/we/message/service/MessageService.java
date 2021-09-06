@@ -1,8 +1,8 @@
 package com.flextalk.we.message.service;
 
 import com.flextalk.we.cmmn.exception.NotEntityException;
-import com.flextalk.we.cmmn.file.FileManager;
 import com.flextalk.we.message.domain.entity.Message;
+import com.flextalk.we.message.domain.repository.MessageReadJdbcRepository;
 import com.flextalk.we.message.domain.repository.MessageReadRepository;
 import com.flextalk.we.message.domain.repository.MessageRepository;
 import com.flextalk.we.message.dto.*;
@@ -32,6 +32,7 @@ public class MessageService {
     private final ParticipantService participantService;
     private final MessageRepository messageRepository;
     private final MessageReadRepository messageReadRepository;
+    private final MessageReadJdbcRepository messageReadJdbcRepository;
 
     /**
      * 메시지 생성(TEXT)
@@ -135,7 +136,7 @@ public class MessageService {
                 .map(id -> new MessageReadBulkInsertDto(messageReadUpdateDto.getParticipantId(), Long.parseLong(id)))
                 .collect(toList());
 
-        messageReadRepository.saveAll(messageReads);
+        messageReadJdbcRepository.saveAll(messageReads);
 
         return 1L;
     }
