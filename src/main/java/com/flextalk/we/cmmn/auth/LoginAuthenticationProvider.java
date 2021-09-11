@@ -3,6 +3,7 @@ package com.flextalk.we.cmmn.auth;
 import com.flextalk.we.user.domain.entity.CustomUser;
 import com.flextalk.we.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,7 +14,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @RequiredArgsConstructor
 public class LoginAuthenticationProvider implements AuthenticationProvider {
 
-    private final UserService userService;
+    @Autowired
+    private UserService userService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override

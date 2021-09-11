@@ -34,7 +34,7 @@ public class User extends BaseEntity {
     private User(String email, String password) {
         this.email = Objects.requireNonNull(email);
         this.password = Objects.requireNonNull(password);
-        this.role = Role.ROLE_NORMAL;
+        this.role = Role.ROLE_GUEST;
     }
 
     public static User register(String email, String password) {
@@ -54,7 +54,7 @@ public class User extends BaseEntity {
 
     /**
      * 권한을 승격시키는 함수
-     * @throws IllegalArgumentException 권한이 관리자일경우 
+     * @throws IllegalArgumentException 권한이 관리자일경우
      */
     public void grantAuthority(Role role) {
         if(this.role.getPriority() < role.getPriority()) {
@@ -63,7 +63,7 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
-    public void loseAuthority(Role role) {
+    public void lossAuthority(Role role) {
         if(this.role.getPriority() > role.getPriority()) {
             throw new IllegalArgumentException("부여할 권한이 옳바르지 않습니다.");
         }

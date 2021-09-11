@@ -15,6 +15,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +31,13 @@ import static java.util.stream.Collectors.toList;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Transactional
     public Long register(UserRegisterDto userRegisterDto) {
-        return userRepository.save(userRegisterDto.toEntity()).getId();
+        return userRepository.save(User.register(userRegisterDto.getUserEmail(),
+                bCryptPasswordEncoder.encode(userRegisterDto.getUserPassword())))
+                .getId();
     }
 
     @Transactional
@@ -54,7 +58,6 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public Long approve(UserApproveDto userApproveDto) {
-
         User user = findUser(userApproveDto.getUserId());
         user.approve();
         return user.getId();
@@ -62,15 +65,15 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public Long grantAuthority(UserRoleGrantDto userRoleGrantDto) {
-        User user = findUser(userRoleGrantDto.getUserId());
-        user.grantAuthority(Role.valueOf(userRoleGrantDto.getUserGrantRole()));
-        return user.getId();
+        User grantUser = findUser(userRoleGrantDto.getUserId());
+        grantUser.grantAuthority(Role.valueOf(userRoleGrantDto.getUserGrantRole()));
+        return grantUser.getId();
     }
 
     @Transactional
     public Long lossAuthority(UserRoleGrantDto userRoleGrantDto) {
         User user = findUser(userRoleGrantDto.getUserId());
-        user.loseAuthority(Role.valueOf(userRoleGrantDto.getUserGrantRole()));
+        user.lossAuthority(Role.valueOf(userRoleGrantDto.getUserGrantRole()));
         return user.getId();
     }
 

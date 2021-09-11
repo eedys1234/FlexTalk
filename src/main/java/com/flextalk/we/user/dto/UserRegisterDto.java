@@ -16,8 +16,4 @@ public class UserRegisterDto {
     @NotBlank
     @JsonProperty(value = "user_password")
     private String userPassword;
-
-    public User toEntity() {
-        return User.register(this.userEmail, this.userPassword);
-    }
 }
