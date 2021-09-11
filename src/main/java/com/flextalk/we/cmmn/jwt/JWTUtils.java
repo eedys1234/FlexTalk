@@ -39,7 +39,7 @@ public class JWTUtils {
         return header.split(" ")[1];
     }
 
-    public Role getRoleFromToken(String security, String token) {
+    public static Role getRoleFromToken(String security, String token) {
         Map<String, Object> body = getBodyFromToken(security, token);
 
         return Optional.ofNullable(body.get("role"))
@@ -47,7 +47,7 @@ public class JWTUtils {
                 .orElseThrow(()-> new IllegalArgumentException("유효하지 않은 token입니다. "));
     }
 
-    public Long getIdFromToken(String security, String token) {
+    public static Long getIdFromToken(String security, String token) {
         Map<String, Object> body = getBodyFromToken(security, token);
 
         return Optional.ofNullable(body.get("id"))

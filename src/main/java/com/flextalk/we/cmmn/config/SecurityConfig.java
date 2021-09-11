@@ -1,19 +1,15 @@
 package com.flextalk.we.cmmn.config;
 
 
-import com.flextalk.we.cmmn.filter.CustomAuthenticationFilter;
-import com.flextalk.we.cmmn.filter.CustomAuthenticationProvider;
-import com.flextalk.we.cmmn.filter.CustomLoginSuccessHandler;
-import com.flextalk.we.cmmn.jwt.JWTTokenGenerator;
+import com.flextalk.we.cmmn.auth.LoginAuthenticationFilter;
+import com.flextalk.we.cmmn.auth.LoginAuthenticationProvider;
+import com.flextalk.we.cmmn.auth.LoginSuccessHandler;
 import com.flextalk.we.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -43,8 +39,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
     @Bean
-    public CustomAuthenticationFilter customAuthenticationFilter() throws Exception {
-        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager());
+    public LoginAuthenticationFilter customAuthenticationFilter() throws Exception {
+        LoginAuthenticationFilter customAuthenticationFilter = new LoginAuthenticationFilter(authenticationManager());
         customAuthenticationFilter.setFilterProcessesUrl("/api/v1/user/login");
         customAuthenticationFilter.setAuthenticationSuccessHandler(customLoginSuccessHandler());
         customAuthenticationFilter.afterPropertiesSet();
@@ -57,13 +53,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public CustomLoginSuccessHandler customLoginSuccessHandler() {
-        return new CustomLoginSuccessHandler();
+    public LoginSuccessHandler customLoginSuccessHandler() {
+        return new LoginSuccessHandler();
     }
 
     @Bean
-    public CustomAuthenticationProvider customAuthenticationProvider() {
-        return new CustomAuthenticationProvider(userService, bCryptPasswordEncoder());
+    public LoginAuthenticationProvider customAuthenticationProvider() {
+        return new LoginAuthenticationProvider(userService, bCryptPasswordEncoder());
     }
 
     @Override

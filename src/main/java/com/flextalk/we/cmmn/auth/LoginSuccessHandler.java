@@ -1,8 +1,7 @@
-package com.flextalk.we.cmmn.filter;
+package com.flextalk.we.cmmn.auth;
 
-import com.flextalk.we.cmmn.jwt.JWTTokenGenerator;
 import com.flextalk.we.cmmn.jwt.TokenGenerator;
-import com.flextalk.we.cmmn.util.AuthConstant;
+import com.flextalk.we.cmmn.util.AuthConstants;
 import com.flextalk.we.user.domain.entity.CustomUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -14,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * 사용자 로그인 성공 시 JWT Token 발행
  */
-public class CustomLoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
+public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     @Autowired
     private TokenGenerator jwtTokenGenerator;
@@ -24,6 +23,6 @@ public class CustomLoginSuccessHandler extends SavedRequestAwareAuthenticationSu
                                         final Authentication authentication) {
 
         final String token = jwtTokenGenerator.generate(((CustomUser)authentication.getPrincipal()).getUser());
-        response.addHeader(AuthConstant.AUTH_HEADER, String.format("%s %s", AuthConstant.TOKEN_TYPE, token));
+        response.addHeader(AuthConstants.AUTH_HEADER, String.format("%s %s", AuthConstants.TOKEN_TYPE, token));
     }
 }

@@ -1,4 +1,4 @@
-package com.flextalk.we.cmmn.filter;
+package com.flextalk.we.cmmn.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flextalk.we.user.dto.UserLoginRequestDto;
@@ -8,19 +8,18 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+public class LoginAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    public CustomAuthenticationFilter(final AuthenticationManager authenticationManager) {
+    public LoginAuthenticationFilter(final AuthenticationManager authenticationManager) {
         super.setAuthenticationManager(authenticationManager);
     }
 

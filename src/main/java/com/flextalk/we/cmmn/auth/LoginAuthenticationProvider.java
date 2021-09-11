@@ -1,4 +1,4 @@
-package com.flextalk.we.cmmn.filter;
+package com.flextalk.we.cmmn.auth;
 
 import com.flextalk.we.user.domain.entity.CustomUser;
 import com.flextalk.we.user.service.UserService;
@@ -11,7 +11,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @RequiredArgsConstructor
-public class CustomAuthenticationProvider implements AuthenticationProvider {
+public class LoginAuthenticationProvider implements AuthenticationProvider {
 
     private final UserService userService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
