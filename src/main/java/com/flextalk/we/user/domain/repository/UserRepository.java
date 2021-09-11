@@ -32,6 +32,14 @@ public class UserRepository {
         );
     }
 
+    public Optional<User> findByEmail(String email) {
+        return Optional.ofNullable(
+                queryFactory.selectFrom(user)
+                .where(user.email.eq(email))
+                .fetchOne()
+        );
+    }
+
     public List<User> findByIds(List<Long> userIds) {
         return queryFactory.selectFrom(user)
                 .where(user.id.in(userIds))
