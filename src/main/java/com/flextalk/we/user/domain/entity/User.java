@@ -27,9 +27,14 @@ public class User extends BaseEntity {
     @Column(name = "user_profile")
     private String profile;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_role", nullable = false, length = 20)
+    private Role role;
+
     private User(String email, String password) {
         this.email = Objects.requireNonNull(email);
         this.password = Objects.requireNonNull(password);
+        this.role = Role.ROLE_NORMAL;
     }
 
     public static User register(String email, String password) {
@@ -39,5 +44,17 @@ public class User extends BaseEntity {
 
     public void updateProfile(String profile) {
         this.profile = profile;
+    }
+
+    /**
+     * 권한을 승격시키는 함수
+     * @throws IllegalArgumentException 권한이 관리자일경우 
+     */
+    public void promote() {
+        if(this.role == Role.ROLE_ADMIN) {
+            throw new IllegalArgumentException("권한을 올릴 수 없습니다.");
+        }
+
+        this.role = this.role.getNextRole();
     }
 }

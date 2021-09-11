@@ -1,6 +1,5 @@
-package com.flextalk.we.cmmn.configure;
+package com.flextalk.we.cmmn.config;
 
-import com.flextalk.we.cmmn.prop.RedisProperties;
 import com.flextalk.we.cmmn.util.CacheNames;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;

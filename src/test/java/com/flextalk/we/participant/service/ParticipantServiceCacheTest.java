@@ -1,6 +1,6 @@
 package com.flextalk.we.participant.service;
 
-import com.flextalk.we.cmmn.configure.CacheConfig;
+import com.flextalk.we.cmmn.config.CacheConfig;
 import com.flextalk.we.cmmn.util.CacheNames;
 import com.flextalk.we.participant.cmmn.ParticipantMatchers;
 import com.flextalk.we.participant.domain.entity.Participant;
