@@ -68,7 +68,7 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public Long loseAuthority(UserRoleGrantDto userRoleGrantDto) {
+    public Long lossAuthority(UserRoleGrantDto userRoleGrantDto) {
         User user = findUser(userRoleGrantDto.getUserId());
         user.loseAuthority(Role.valueOf(userRoleGrantDto.getUserGrantRole()));
         return user.getId();
