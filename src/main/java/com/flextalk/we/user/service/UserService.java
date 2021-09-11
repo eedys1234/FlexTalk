@@ -1,9 +1,15 @@
 package com.flextalk.we.user.service;
 
+import antlr.StringUtils;
 import com.flextalk.we.cmmn.exception.NotEntityException;
 import com.flextalk.we.user.domain.entity.CustomUser;
+import com.flextalk.we.user.domain.entity.Role;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
+import com.flextalk.we.user.dto.UserApproveDto;
+import com.flextalk.we.user.dto.UserRegisterDto;
+import com.flextalk.we.user.dto.UserRoleGrantDto;
+import com.flextalk.we.user.dto.UserUpdateDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 
@@ -23,6 +30,49 @@ import static java.util.stream.Collectors.toList;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+
+    @Transactional
+    public Long register(UserRegisterDto userRegisterDto) {
+        return userRepository.save(userRegisterDto.toEntity()).getId();
+    }
+
+    @Transactional
+    public Long update(UserUpdateDto userUpdateDto) {
+
+        User user = findUser(userUpdateDto.getUserId());
+
+        if(Objects.nonNull(userUpdateDto.getUserPassword())) {
+            user.updatePassword(userUpdateDto.getUserPassword());
+        }
+
+        if(Objects.nonNull(userUpdateDto.getUserProfile())) {
+            user.updateProfile(userUpdateDto.getUserProfile());
+        }
+
+        return user.getId();
+    }
+
+    @Transactional
+    public Long approve(UserApproveDto userApproveDto) {
+
+        User user = findUser(userApproveDto.getUserId());
+        user.approve();
+        return user.getId();
+    }
+
+    @Transactional
+    public Long grantAuthority(UserRoleGrantDto userRoleGrantDto) {
+        User user = findUser(userRoleGrantDto.getUserId());
+        user.grantAuthority(Role.valueOf(userRoleGrantDto.getUserGrantRole()));
+        return user.getId();
+    }
+
+    @Transactional
+    public Long loseAuthority(UserRoleGrantDto userRoleGrantDto) {
+        User user = findUser(userRoleGrantDto.getUserId());
+        user.loseAuthority(Role.valueOf(userRoleGrantDto.getUserGrantRole()));
+        return user.getId();
+    }
 
     @Transactional(readOnly = true)
     public User findUser(Long userId) {

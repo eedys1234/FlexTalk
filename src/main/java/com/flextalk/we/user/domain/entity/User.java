@@ -42,7 +42,13 @@ public class User extends BaseEntity {
         return user;
     }
 
+    public void updatePassword(String password) {
+        password = Objects.requireNonNull(password);
+        this.password = password;
+    }
+
     public void updateProfile(String profile) {
+        profile = Objects.requireNonNull(profile);
         this.profile = profile;
     }
 
@@ -50,11 +56,25 @@ public class User extends BaseEntity {
      * 권한을 승격시키는 함수
      * @throws IllegalArgumentException 권한이 관리자일경우 
      */
-    public void promote() {
-        if(this.role == Role.ROLE_ADMIN) {
-            throw new IllegalArgumentException("권한을 올릴 수 없습니다.");
+    public void grantAuthority(Role role) {
+        if(this.role.getPriority() < role.getPriority()) {
+            throw new IllegalArgumentException("부여할 권한이 옳바르지 않습니다.");
+        }
+        this.role = role;
+    }
+
+    public void loseAuthority(Role role) {
+        if(this.role.getPriority() > role.getPriority()) {
+            throw new IllegalArgumentException("부여할 권한이 옳바르지 않습니다.");
+        }
+        this.role = role;
+    }
+
+    public void approve() {
+        if(this.role != Role.ROLE_GUEST) {
+            throw new IllegalStateException("GUEST 승인 받을 수 있습니다.");
         }
 
-        this.role = this.role.getNextRole();
+        this.role = Role.ROLE_NORMAL;
     }
 }
