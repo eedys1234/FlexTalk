@@ -1,4 +1,4 @@
-package com.flextalk.we.cmmn.configure;
+package com.flextalk.we.cmmn.config;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;

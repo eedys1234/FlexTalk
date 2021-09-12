@@ -1,22 +1,81 @@
 package com.flextalk.we.user.service;
 
+import antlr.StringUtils;
 import com.flextalk.we.cmmn.exception.NotEntityException;
+import com.flextalk.we.user.domain.entity.CustomUser;
+import com.flextalk.we.user.domain.entity.Role;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.UserRepository;
+import com.flextalk.we.user.dto.UserApproveDto;
+import com.flextalk.we.user.dto.UserRegisterDto;
+import com.flextalk.we.user.dto.UserRoleGrantDto;
+import com.flextalk.we.user.dto.UserUpdateDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Transactional
+    public Long register(UserRegisterDto userRegisterDto) {
+        return userRepository.save(User.register(userRegisterDto.getUserEmail(),
+                bCryptPasswordEncoder.encode(userRegisterDto.getUserPassword())))
+                .getId();
+    }
+
+    @Transactional
+    public Long update(UserUpdateDto userUpdateDto) {
+
+        User user = findUser(userUpdateDto.getUserId());
+
+        if(Objects.nonNull(userUpdateDto.getUserPassword())) {
+            user.updatePassword(userUpdateDto.getUserPassword());
+        }
+
+        if(Objects.nonNull(userUpdateDto.getUserProfile())) {
+            user.updateProfile(userUpdateDto.getUserProfile());
+        }
+
+        return user.getId();
+    }
+
+    @Transactional
+    public Long approve(UserApproveDto userApproveDto) {
+        User user = findUser(userApproveDto.getUserId());
+        user.approve();
+        return user.getId();
+    }
+
+    @Transactional
+    public Long grantAuthority(UserRoleGrantDto userRoleGrantDto) {
+        User grantUser = findUser(userRoleGrantDto.getUserId());
+        grantUser.grantAuthority(Role.valueOf(userRoleGrantDto.getUserGrantRole()));
+        return grantUser.getId();
+    }
+
+    @Transactional
+    public Long lossAuthority(UserRoleGrantDto userRoleGrantDto) {
+        User user = findUser(userRoleGrantDto.getUserId());
+        user.lossAuthority(Role.valueOf(userRoleGrantDto.getUserGrantRole()));
+        return user.getId();
+    }
 
     @Transactional(readOnly = true)
     public User findUser(Long userId) {
@@ -41,5 +100,12 @@ public class UserService {
         }
 
         return true;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByEmail(username)
+                .map(u -> new CustomUser(u, Collections.singleton(new SimpleGrantedAuthority(u.getRole().getKey()))))
+                .orElseThrow(() -> new NotEntityException("사용자가 존재하지 않습니다 userEmail = " + username));
     }
 }

@@ -1,4 +1,4 @@
-package com.flextalk.we.cmmn.configure;
+package com.flextalk.we.cmmn.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package com.flextalk.we.cmmn.configuration;
+package com.flextalk.we.cmmn.config;
 
 import com.flextalk.we.cmmn.prop.RedisProperties;
 import org.springframework.boot.test.context.TestConfiguration;

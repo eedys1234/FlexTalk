@@ -1,4 +1,4 @@
-package com.flextalk.we.cmmn.configure;
+package com.flextalk.we.cmmn.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;

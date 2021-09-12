@@ -3,6 +3,8 @@ package com.flextalk.we.cmmn.exception;
 import com.flextalk.we.cmmn.response.ErrorResponse;
 import javassist.NotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -36,16 +38,27 @@ public class ExceptionAdvice {
         return ErrorResponse.of(ErrorCode.METHOD_NOT_ALLOWED);
     }
 
-//    /**
-//     * 인증되지 않은 사용자일경우 발생
-//     * @param e not exist token
-//     * @return ErrorResponse
-//     */
-//    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-//    @ExceptionHandler(AccessDeniedException.class)
-//    public ErrorResponse handleAccessDeniedException(AccessDeniedException e) {
-//        return ErrorResponse.of(ErrorCode.UNAUTHORIZED);
-//    }
+    /**
+     * 인증되지 않은 사용자일경우 발생
+     * @param e not exist token
+     * @return ErrorResponse
+     */
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ErrorResponse handleAccessDeniedException(AccessDeniedException e) {
+        return ErrorResponse.of(ErrorCode.UNAUTHORIZED);
+    }
+
+    /**
+     * 인증되지 않은 사용자일경우 발생
+     * @param e 비밀번호 틀림
+     * @return ErrorResponse
+     */
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(AuthenticationException.class)
+    public ErrorResponse handleAuthenticationException(AuthenticationException e) {
+        return ErrorResponse.of(ErrorCode.UNAUTHORIZED);
+    }
 
     /**
      * 인가되지 않은 사용자일경우 발생
@@ -66,6 +79,17 @@ public class ExceptionAdvice {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(NotFoundException.class)
     public ErrorResponse handleNotFoundException(NotFoundException e) {
+        return ErrorResponse.of(ErrorCode.NOT_FOUND);
+    }
+
+    /**
+     * Not Exist Exception
+     * @param e not exist
+     * @return ErrorResponse
+     */
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NotExistException.class)
+    public ErrorResponse handleNotExistException(NotEntityException e) {
         return ErrorResponse.of(ErrorCode.NOT_FOUND);
     }
 

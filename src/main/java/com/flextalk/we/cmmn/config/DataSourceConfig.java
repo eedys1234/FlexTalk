@@ -1,7 +1,6 @@
-package com.flextalk.we.cmmn.configure;
+package com.flextalk.we.cmmn.config;
 
 import com.flextalk.we.cmmn.util.RoutingDataSource;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
