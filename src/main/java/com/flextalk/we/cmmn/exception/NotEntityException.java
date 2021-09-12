@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Entity 존재하지 않을 때 발생하는 예외
  */
-public class NotEntityException extends RuntimeException {
+public class NotEntityException extends NotExistException {
 
     private List<ErrorResponse.ErrorParam> errorParams = new ArrayList<>();
 

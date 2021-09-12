@@ -71,6 +71,17 @@ public class ExceptionAdvice {
     }
 
     /**
+     * Not Exist Exception
+     * @param e not exist
+     * @return ErrorResponse
+     */
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NotExistException.class)
+    public ErrorResponse handleNotExistException(NotEntityException e) {
+        return ErrorResponse.of(ErrorCode.NOT_FOUND);
+    }
+
+    /**
      * 비즈니스 로직에 모순이 발생할 경우 발생
      * @param e business logic contradiction
      * @return ErrorResponse

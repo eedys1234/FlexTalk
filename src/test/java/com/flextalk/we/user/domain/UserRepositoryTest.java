@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.flextalk.we.user.cmmn.MockUserInfo.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -25,9 +26,6 @@ public class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
-
-    private final String ADMIN_EMAIL = "test1@gmail.com";
-    private final String NORMAL_EMAIL = "test2@gmail.com";
 
     
     @DisplayName("사용자 등록 테스트")
@@ -77,6 +75,7 @@ public class UserRepositoryTest {
         MockUserFactory mockUserFactory = new MockUserFactory();
         User user = mockUserFactory.create(NORMAL_EMAIL, "TES112##513");
         User registerUser = userRepository.save(user);
+        registerUser.lossAuthority(Role.ROLE_GUEST);
 
         assertThat(registerUser.getRole(), is(Role.ROLE_GUEST));
 
@@ -93,8 +92,8 @@ public class UserRepositoryTest {
 
         //given
         MockUserFactory mockUserFactory = new MockUserFactory();
-        User adminUser = mockUserFactory.create(ADMIN_EMAIL, "TES112##513");
-        User addedUser = mockUserFactory.create(NORMAL_EMAIL, "TES112##513");
+        User adminUser = mockUserFactory.create(ADMIN_EMAIL, ADMIN_PASSWORD);
+        User addedUser = mockUserFactory.create(NORMAL_EMAIL, NORMAL_PASSWORD);
 
         adminUser.grantAuthority(Role.ROLE_ADMIN);
 
@@ -114,8 +113,8 @@ public class UserRepositoryTest {
 
         //given
         MockUserFactory mockUserFactory = new MockUserFactory();
-        User adminUser = mockUserFactory.create(ADMIN_EMAIL, "TES112##513");
-        User addedUser = mockUserFactory.create(NORMAL_EMAIL, "TES112##513");
+        User adminUser = mockUserFactory.create(ADMIN_EMAIL, ADMIN_PASSWORD);
+        User addedUser = mockUserFactory.create(NORMAL_EMAIL, NORMAL_PASSWORD);
 
         adminUser.grantAuthority(Role.ROLE_ADMIN);
         addedUser.grantAuthority(Role.ROLE_ADMIN);
@@ -135,8 +134,8 @@ public class UserRepositoryTest {
 
         //given
         MockUserFactory mockUserFactory = new MockUserFactory();
-        User adminUser = mockUserFactory.create(ADMIN_EMAIL, "TES112##513");
-        User addedUser = mockUserFactory.create(NORMAL_EMAIL, "TES112##513");
+        User adminUser = mockUserFactory.create(ADMIN_EMAIL, ADMIN_PASSWORD);
+        User addedUser = mockUserFactory.create(NORMAL_EMAIL, NORMAL_PASSWORD);
         adminUser.grantAuthority(Role.ROLE_ADMIN);
         addedUser.grantAuthority(Role.ROLE_ADMIN);
         userRepository.save(adminUser);
@@ -157,8 +156,8 @@ public class UserRepositoryTest {
 
         //given
         MockUserFactory mockUserFactory = new MockUserFactory();
-        User adminUser = mockUserFactory.create(ADMIN_EMAIL, "TES112##513");
-        User addedUser = mockUserFactory.create(NORMAL_EMAIL, "TES112##513");
+        User adminUser = mockUserFactory.create(ADMIN_EMAIL, ADMIN_PASSWORD);
+        User addedUser = mockUserFactory.create(NORMAL_EMAIL, NORMAL_PASSWORD);
 
         adminUser.grantAuthority(Role.ROLE_ADMIN);
         addedUser.grantAuthority(Role.ROLE_NORMAL);
@@ -178,7 +177,7 @@ public class UserRepositoryTest {
 
         //given
         MockUserFactory mockUserFactory = new MockUserFactory();
-        User adminUser = mockUserFactory.create(ADMIN_EMAIL, "TES112##513");
+        User adminUser = mockUserFactory.create(ADMIN_EMAIL, ADMIN_PASSWORD);
 
         userRepository.save(adminUser);
 

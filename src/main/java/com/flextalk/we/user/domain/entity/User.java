@@ -34,7 +34,7 @@ public class User extends BaseEntity {
     private User(String email, String password) {
         this.email = Objects.requireNonNull(email);
         this.password = Objects.requireNonNull(password);
-        this.role = Role.ROLE_GUEST;
+        this.role = Role.ROLE_NORMAL;
     }
 
     public static User register(String email, String password) {

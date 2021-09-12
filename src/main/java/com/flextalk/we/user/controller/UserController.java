@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/api")
@@ -27,8 +31,10 @@ public class UserController {
         return SuccessResponse.of(HttpStatus.OK.value(), userService.loadUserByUsername(userLoginRequestDto.getUserEmail()));
     }
 
-    @PutMapping(value = "/v1/user")
-    public SuccessResponse<Long> update(UserUpdateDto userUpdateDto) {
+    @PostMapping(value = "/v1/user/info")
+    public SuccessResponse<Long> update(UserUpdateDto userUpdateDto,
+                                        MultipartHttpServletRequest multipartHttpServletRequest) {
+
         return SuccessResponse.of(HttpStatus.CREATED.value(), userService.update(userUpdateDto));
     }
 
