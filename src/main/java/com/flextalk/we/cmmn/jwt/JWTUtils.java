@@ -43,7 +43,7 @@ public class JWTUtils {
         Map<String, Object> body = getBodyFromToken(security, token);
 
         return Optional.ofNullable(body.get("role"))
-                .map(u -> (Role) u)
+                .map(u -> Role.valueOf(String.valueOf(u)))
                 .orElseThrow(()-> new IllegalArgumentException("유효하지 않은 token입니다. "));
     }
 

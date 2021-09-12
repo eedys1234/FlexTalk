@@ -17,7 +17,4 @@ public class UserLoginRequestDto {
     @JsonProperty(value = "user_password")
     private String userPassword;
 
-    @JsonProperty(value = "user_profile")
-    private String userProfile;
-
 }

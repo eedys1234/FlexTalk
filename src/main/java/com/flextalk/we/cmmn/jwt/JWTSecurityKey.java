@@ -7,14 +7,17 @@ import org.springframework.stereotype.Component;
 import java.util.Base64;
 
 @Getter
-@Component
-public final class JWTSecurityKey {
+@Component(value = "jwtSecurityKey")
+public class JWTSecurityKey {
 
-    @Value("{jwt.security_key}")
-    private String SECURITY_KEY = "";
+    @Value("${jwt.security_key}")
+    private String SECURITY_KEY;
+
+    private String baseSecurityKey;
 
     public JWTSecurityKey() {
-        SECURITY_KEY = Base64.getEncoder().encodeToString(SECURITY_KEY.getBytes());
+        assert SECURITY_KEY != null;
+        baseSecurityKey = Base64.getEncoder().encodeToString(SECURITY_KEY.getBytes());
     }
 
 }

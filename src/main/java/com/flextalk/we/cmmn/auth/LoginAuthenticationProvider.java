@@ -26,7 +26,7 @@ public class LoginAuthenticationProvider implements AuthenticationProvider {
         final String password = String.valueOf(token.getCredentials());
         final CustomUser customUser = (CustomUser) userService.loadUserByUsername(email);
 
-        if(bCryptPasswordEncoder.matches(password, customUser.getPassword())) {
+        if(!bCryptPasswordEncoder.matches(password, customUser.getPassword())) {
             throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
         }
 

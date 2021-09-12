@@ -17,7 +17,7 @@ import java.util.Date;
 /**
  * JWT Token Generator
  */
-@Component
+@Component("jwtTokenGenerator")
 @RequiredArgsConstructor
 public class JWTTokenGenerator implements TokenGenerator<CustomUser> {
 
@@ -37,7 +37,7 @@ public class JWTTokenGenerator implements TokenGenerator<CustomUser> {
         Claims claims = Jwts.claims().setSubject(email);
 
         //비공개 클레임 설정
-        claims.put("role", role);
+        claims.put("role", role.getKey());
         claims.put("id", id);
 
         Date now = new Date();
@@ -47,7 +47,7 @@ public class JWTTokenGenerator implements TokenGenerator<CustomUser> {
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(new Date(nowTime + expireMilisecond))
-                .signWith(SignatureAlgorithm.HS256, jwtSecurityKey.getSECURITY_KEY())
+                .signWith(SignatureAlgorithm.HS256, jwtSecurityKey.getBaseSecurityKey())
                 .compact();
     }
 }
