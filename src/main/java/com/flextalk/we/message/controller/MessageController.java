@@ -7,6 +7,7 @@ import com.flextalk.we.message.dto.MessageUnReadResponseDto;
 import com.flextalk.we.message.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +22,7 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/api")
+@Log4j2
 public class MessageController {
 
     private final MessageService messageService;
