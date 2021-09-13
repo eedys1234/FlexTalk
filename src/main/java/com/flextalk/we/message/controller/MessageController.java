@@ -1,5 +1,6 @@
 package com.flextalk.we.message.controller;
 
+import com.flextalk.we.cmmn.exception.NotFileException;
 import com.flextalk.we.cmmn.response.SuccessResponse;
 import com.flextalk.we.message.dto.MessageReadUpdateDto;
 import com.flextalk.we.message.dto.MessageSaveRequestDto;
@@ -46,7 +47,7 @@ public class MessageController {
 
         MultipartFile multipartFile = Optional.ofNullable(multipartHttpServletRequest)
                 .map(multipart -> multipart.getFile("file"))
-                .orElse(null);
+                .orElseThrow(() -> new NotFileException("파일이 존재하지 않습니다."));
 
         Long sendMessageId = null;
 

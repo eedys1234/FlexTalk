@@ -1,10 +1,11 @@
 package com.flextalk.we.cmmn.auth;
 
 import com.flextalk.we.cmmn.exception.ResourceAccessDeniedException;
-import com.flextalk.we.cmmn.jwt.JWTSecurityKey;
-import com.flextalk.we.cmmn.jwt.JWTUtils;
+import com.flextalk.we.cmmn.token.TokenGenerator;
 import com.flextalk.we.cmmn.util.AuthConstants;
+import com.flextalk.we.user.domain.entity.CustomUser;
 import com.flextalk.we.user.domain.entity.Role;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -20,7 +21,7 @@ import java.util.Objects;
 public class JWTTokenInterceptor implements HandlerInterceptor {
 
     @Autowired
-    private JWTSecurityKey jwtSecurityKey;
+    private TokenGenerator<CustomUser> jwtTokenGenerator;
 
     @Override
     public boolean preHandle(final HttpServletRequest request, final HttpServletResponse response, final Object handler) throws IOException {
@@ -36,12 +37,10 @@ public class JWTTokenInterceptor implements HandlerInterceptor {
         final String authorization = request.getHeader(AuthConstants.AUTH_HEADER);
 
         if(Objects.nonNull(authorization)) {
-            final String token = JWTUtils.getTokenFromHeader(authorization);
+            final String token = jwtTokenGenerator.getTokenFromHeader(authorization);
+            if(jwtTokenGenerator.isValidateToken(token)) {
 
-            String security_key = jwtSecurityKey.getBaseSecurityKey();
-            if(JWTUtils.isValidateToken(security_key, token) || !JWTUtils.isExpireToken(security_key, token)) {
-
-                Role userRole = JWTUtils.getRoleFromToken(security_key, token);
+                Role userRole = Role.valueOf(jwtTokenGenerator.getRoleFromToken(token));
 
                 if(userRole.getPriority() <= apiRole.getPriority()) {
                     return true;

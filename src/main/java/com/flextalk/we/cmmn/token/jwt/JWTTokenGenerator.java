@@ -1,5 +1,7 @@
-package com.flextalk.we.cmmn.jwt;
+package com.flextalk.we.cmmn.token.jwt;
 
+import com.flextalk.we.cmmn.token.TokenGenerator;
+import com.flextalk.we.cmmn.token.jwt.JWTSecurityKey;
 import com.flextalk.we.user.domain.entity.CustomUser;
 import com.flextalk.we.user.domain.entity.Role;
 import com.flextalk.we.user.domain.entity.User;
@@ -7,11 +9,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.Date;
 
 /**
@@ -19,6 +19,7 @@ import java.util.Date;
  */
 @Component("jwtTokenGenerator")
 @RequiredArgsConstructor
+@Log4j2
 public class JWTTokenGenerator implements TokenGenerator<CustomUser> {
 
     //유효기간 4시간
@@ -41,13 +42,28 @@ public class JWTTokenGenerator implements TokenGenerator<CustomUser> {
         claims.put("id", id);
 
         Date now = new Date();
-        long nowTime = now.getTime();
 
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
-                .setExpiration(new Date(nowTime + expireMilisecond))
+                .setExpiration(new Date(now.getTime() + expireMilisecond))
                 .signWith(SignatureAlgorithm.HS256, jwtSecurityKey.getBaseSecurityKey())
                 .compact();
+    }
+
+    @Override
+    public String getTokenFromHeader(String header) {
+        return JWTUtils.getTokenFromHeader(header);
+    }
+
+    @Override
+    public String getRoleFromToken(String token) {
+        return JWTUtils.getRoleFromToken(jwtSecurityKey.getBaseSecurityKey(), token);
+    }
+
+    @Override
+    public boolean isValidateToken(String token) {
+        log.info("jwtSecurityKey.getBaseSecurityKey() : " + jwtSecurityKey.getBaseSecurityKey());
+        return JWTUtils.isValidateToken(jwtSecurityKey.getBaseSecurityKey(), token);
     }
 }
