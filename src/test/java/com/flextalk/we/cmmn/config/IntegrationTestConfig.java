@@ -1,6 +1,6 @@
 package com.flextalk.we.cmmn.config;
 
-import com.flextalk.we.cmmn.jwt.JWTSecurityKey;
+import com.flextalk.we.cmmn.token.jwt.JWTSecurityKey;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -15,6 +15,6 @@ public class IntegrationTestConfig {
 
     @PostConstruct
     public void init() {
-        ReflectionTestUtils.setField(jwtSecurityKey, "SECURITY_KEY", "331@@#dsd");
+        ReflectionTestUtils.setField(jwtSecurityKey, "SECURITY_KEY", "123##2da");
     }
 }

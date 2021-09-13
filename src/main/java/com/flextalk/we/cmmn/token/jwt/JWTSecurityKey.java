@@ -1,9 +1,10 @@
-package com.flextalk.we.cmmn.jwt;
+package com.flextalk.we.cmmn.token.jwt;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.Base64;
 
 @Getter
@@ -16,8 +17,12 @@ public class JWTSecurityKey {
     private String baseSecurityKey;
 
     public JWTSecurityKey() {
+    }
+
+    @PostConstruct
+    public void init() {
         assert SECURITY_KEY != null;
-        baseSecurityKey = Base64.getEncoder().encodeToString(SECURITY_KEY.getBytes());
+        this.baseSecurityKey = Base64.getEncoder().encodeToString(SECURITY_KEY.getBytes());
     }
 
 }

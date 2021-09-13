@@ -1,14 +1,12 @@
 package com.flextalk.we.user.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flextalk.we.cmmn.jwt.JWTSecurityKey;
-import com.flextalk.we.cmmn.jwt.JWTTokenGenerator;
-import com.flextalk.we.cmmn.jwt.JWTUtils;
-import com.flextalk.we.cmmn.jwt.TokenGenerator;
+import com.flextalk.we.cmmn.token.jwt.JWTSecurityKey;
+import com.flextalk.we.cmmn.token.jwt.JWTTokenGenerator;
+import com.flextalk.we.cmmn.token.jwt.JWTTokenGeneratorTest;
+import com.flextalk.we.cmmn.token.TokenGenerator;
 import com.flextalk.we.cmmn.util.AuthConstants;
 import com.flextalk.we.user.cmmn.MockUserFactory;
-import com.flextalk.we.user.cmmn.MockUserInfo;
 import com.flextalk.we.user.domain.entity.CustomUser;
 import com.flextalk.we.user.domain.entity.Role;
 import com.flextalk.we.user.domain.entity.User;
@@ -17,11 +15,11 @@ import com.flextalk.we.user.dto.UserLoginRequestDto;
 import com.flextalk.we.user.dto.UserRegisterDto;
 import com.flextalk.we.user.dto.UserRoleGrantDto;
 import com.flextalk.we.user.service.UserService;
+import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -45,6 +43,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Log4j2
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
 @WebMvcTest(value = UserController.class)
@@ -80,7 +79,6 @@ public class UserControllerTest {
 
         String base64SecurityKey = Base64.getEncoder().encodeToString("123##2da".getBytes());
         doReturn(base64SecurityKey).when(jwtSecurityKey).getBaseSecurityKey();
-
         CustomUser customUser = new CustomUser(adminUser, Collections.singleton(new SimpleGrantedAuthority(adminUser.getRole().getKey())));
         token = jwtTokenGenerator.generate(customUser);
     }
@@ -174,6 +172,9 @@ public class UserControllerTest {
         ReflectionTestUtils.setField(userApproveDto, "userId", userId);
 
         doReturn(userId).when(userService).approve(any(UserApproveDto.class));
+        doReturn(token).when(jwtTokenGenerator).getTokenFromHeader(anyString());
+        doReturn(true).when(jwtTokenGenerator).isValidateToken(anyString());
+        doReturn("ROLE_ADMIN").when(jwtTokenGenerator).getRoleFromToken(anyString());
 
         //when
         ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.put(url)
@@ -202,6 +203,10 @@ public class UserControllerTest {
         ReflectionTestUtils.setField(userRoleGrantDto, "userId", userId);
 
         doReturn(userId).when(userService).grantAuthority(any(UserRoleGrantDto.class));
+        doReturn(userId).when(userService).approve(any(UserApproveDto.class));
+        doReturn(token).when(jwtTokenGenerator).getTokenFromHeader(anyString());
+        doReturn(true).when(jwtTokenGenerator).isValidateToken(anyString());
+        doReturn("ROLE_ADMIN").when(jwtTokenGenerator).getRoleFromToken(anyString());
 
         //when
         ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.put(url)
@@ -230,6 +235,10 @@ public class UserControllerTest {
         ReflectionTestUtils.setField(userRoleGrantDto, "userId", userId);
 
         doReturn(userId).when(userService).lossAuthority(any(UserRoleGrantDto.class));
+        doReturn(userId).when(userService).approve(any(UserApproveDto.class));
+        doReturn(token).when(jwtTokenGenerator).getTokenFromHeader(anyString());
+        doReturn(true).when(jwtTokenGenerator).isValidateToken(anyString());
+        doReturn("ROLE_ADMIN").when(jwtTokenGenerator).getRoleFromToken(anyString());
 
         //when
         ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.put(url)

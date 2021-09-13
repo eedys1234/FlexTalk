@@ -1,13 +1,11 @@
 package com.flextalk.we.cmmn.auth;
 
-import com.flextalk.we.cmmn.jwt.TokenGenerator;
+import com.flextalk.we.cmmn.token.TokenGenerator;
 import com.flextalk.we.cmmn.util.AuthConstants;
 import com.flextalk.we.user.domain.entity.CustomUser;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
