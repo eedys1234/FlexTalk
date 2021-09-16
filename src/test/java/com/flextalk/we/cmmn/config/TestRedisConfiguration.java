@@ -8,7 +8,7 @@ import redis.embedded.RedisServer;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-@TestConfiguration
+//@TestConfiguration
 public class TestRedisConfiguration {
 
     private RedisServer redisServer;

@@ -9,6 +9,7 @@ import com.flextalk.we.user.cmmn.MockUserFactory;
 import com.flextalk.we.user.domain.entity.CustomUser;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.TokenRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,15 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
 
 import static com.flextalk.we.user.cmmn.MockUserInfo.ADMIN_EMAIL;
 import static com.flextalk.we.user.cmmn.MockUserInfo.ADMIN_PASSWORD;
@@ -32,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
+@ImportAutoConfiguration(classes = TestRedisConfiguration.class)
 public class TokenRepositoryTest {
 
     @Autowired
@@ -45,6 +39,11 @@ public class TokenRepositoryTest {
         MockUserFactory mockUserFactory = new MockUserFactory();
         this.user = mockUserFactory.create(ADMIN_EMAIL, ADMIN_PASSWORD);
         this.token = "token";
+    }
+
+    @AfterEach
+    public void teardown() {
+
     }
 
     @DisplayName("Token 저장 To Redis 테스트")
