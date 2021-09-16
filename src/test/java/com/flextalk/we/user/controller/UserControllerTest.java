@@ -10,6 +10,7 @@ import com.flextalk.we.user.cmmn.MockUserFactory;
 import com.flextalk.we.user.domain.entity.CustomUser;
 import com.flextalk.we.user.domain.entity.Role;
 import com.flextalk.we.user.domain.entity.User;
+import com.flextalk.we.user.domain.repository.TokenRepository;
 import com.flextalk.we.user.dto.UserApproveDto;
 import com.flextalk.we.user.dto.UserLoginRequestDto;
 import com.flextalk.we.user.dto.UserRegisterDto;
@@ -60,6 +61,9 @@ public class UserControllerTest {
 
     @MockBean
     private TokenGenerator<CustomUser> jwtTokenGenerator;
+
+    @MockBean
+    private TokenRepository tokenRepository;
 
     private String token;
 
@@ -175,6 +179,7 @@ public class UserControllerTest {
         doReturn(token).when(jwtTokenGenerator).getTokenFromHeader(anyString());
         doReturn(true).when(jwtTokenGenerator).isValidateToken(anyString());
         doReturn("ROLE_ADMIN").when(jwtTokenGenerator).getRoleFromToken(anyString());
+        doReturn(true).when(tokenRepository).findToken(anyString());
 
         //when
         ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.put(url)
@@ -207,6 +212,7 @@ public class UserControllerTest {
         doReturn(token).when(jwtTokenGenerator).getTokenFromHeader(anyString());
         doReturn(true).when(jwtTokenGenerator).isValidateToken(anyString());
         doReturn("ROLE_ADMIN").when(jwtTokenGenerator).getRoleFromToken(anyString());
+        doReturn(true).when(tokenRepository).findToken(anyString());
 
         //when
         ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.put(url)
@@ -239,6 +245,7 @@ public class UserControllerTest {
         doReturn(token).when(jwtTokenGenerator).getTokenFromHeader(anyString());
         doReturn(true).when(jwtTokenGenerator).isValidateToken(anyString());
         doReturn("ROLE_ADMIN").when(jwtTokenGenerator).getRoleFromToken(anyString());
+        doReturn(true).when(tokenRepository).findToken(anyString());
 
         //when
         ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.put(url)

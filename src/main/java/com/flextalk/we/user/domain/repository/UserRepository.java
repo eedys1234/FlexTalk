@@ -4,10 +4,12 @@ import com.flextalk.we.user.domain.entity.QUser;
 import com.flextalk.we.user.domain.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.flextalk.we.user.domain.entity.QUser.user;
