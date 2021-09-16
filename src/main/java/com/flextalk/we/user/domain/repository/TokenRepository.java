@@ -10,7 +10,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class TokenRepository {
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<Object, Object> redisTemplate;
 
     public boolean findToken(String token) {
         return Objects.nonNull(redisTemplate.opsForValue().get(token));
