@@ -1,6 +1,5 @@
 package com.flextalk.we.user.domain;
 
-import com.flextalk.we.cmmn.config.IntegrationTestConfig;
 import com.flextalk.we.cmmn.exception.NotEntityException;
 import com.flextalk.we.user.cmmn.MockUserFactory;
 import com.flextalk.we.user.domain.entity.Role;
@@ -10,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +26,6 @@ public class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
-
     
     @DisplayName("사용자 등록 테스트")
     @Test

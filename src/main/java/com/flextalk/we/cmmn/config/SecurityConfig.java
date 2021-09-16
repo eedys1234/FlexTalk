@@ -6,6 +6,8 @@ import com.flextalk.we.cmmn.auth.LoginAuthenticationProvider;
 import com.flextalk.we.cmmn.auth.LoginSuccessHandler;
 import com.flextalk.we.cmmn.token.TokenGenerator;
 import com.flextalk.we.user.domain.entity.CustomUser;
+import com.flextalk.we.user.domain.repository.TokenRepository;
+import com.flextalk.we.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final TokenGenerator<CustomUser> jwtTokenGenerator;
+    private final TokenRepository tokenRepository;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -55,7 +58,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public LoginSuccessHandler customLoginSuccessHandler() {
-        return new LoginSuccessHandler(jwtTokenGenerator);
+        return new LoginSuccessHandler(jwtTokenGenerator, tokenRepository);
     }
 
     @Bean

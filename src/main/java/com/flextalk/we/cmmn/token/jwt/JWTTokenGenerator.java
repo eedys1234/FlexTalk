@@ -63,7 +63,6 @@ public class JWTTokenGenerator implements TokenGenerator<CustomUser> {
 
     @Override
     public boolean isValidateToken(String token) {
-        log.info("jwtSecurityKey.getBaseSecurityKey() : " + jwtSecurityKey.getBaseSecurityKey());
         return JWTUtils.isValidateToken(jwtSecurityKey.getBaseSecurityKey(), token);
     }
 }

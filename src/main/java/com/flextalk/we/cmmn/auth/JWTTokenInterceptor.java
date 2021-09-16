@@ -5,6 +5,7 @@ import com.flextalk.we.cmmn.token.TokenGenerator;
 import com.flextalk.we.cmmn.util.AuthConstants;
 import com.flextalk.we.user.domain.entity.CustomUser;
 import com.flextalk.we.user.domain.entity.Role;
+import com.flextalk.we.user.domain.repository.TokenRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,9 @@ public class JWTTokenInterceptor implements HandlerInterceptor {
     @Autowired
     private TokenGenerator<CustomUser> jwtTokenGenerator;
 
+    @Autowired
+    private TokenRepository tokenRepository;
+
     @Override
     public boolean preHandle(final HttpServletRequest request, final HttpServletResponse response, final Object handler) throws IOException {
 
@@ -38,7 +42,7 @@ public class JWTTokenInterceptor implements HandlerInterceptor {
 
         if(Objects.nonNull(authorization)) {
             final String token = jwtTokenGenerator.getTokenFromHeader(authorization);
-            if(jwtTokenGenerator.isValidateToken(token)) {
+            if(jwtTokenGenerator.isValidateToken(token) && tokenRepository.findToken(token)) {
 
                 Role userRole = Role.valueOf(jwtTokenGenerator.getRoleFromToken(token));
 
