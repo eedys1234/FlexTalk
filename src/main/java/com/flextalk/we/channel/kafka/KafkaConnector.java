@@ -1,12 +1,12 @@
 package com.flextalk.we.channel.kafka;
 
 import com.flextalk.we.channel.ConnectorContext;
-import com.flextalk.we.channel.PlatFormConnector;
+import com.flextalk.we.channel.PlatformConnector;
 
 /**
  * Kafka Producing / Consuming
  */
-public class KafkaConnector implements PlatFormConnector {
+public class KafkaConnector implements PlatformConnector {
 
     @Override
     public int send(ConnectorContext record) {

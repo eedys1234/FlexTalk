@@ -1,6 +1,8 @@
 package com.flextalk.we.user.domain.repository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -10,14 +12,14 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class TokenRepository {
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisSessionTemplate;
 
     public boolean findToken(String token) {
-        return Objects.nonNull(redisTemplate.opsForValue().get(token));
+        return Objects.nonNull(redisSessionTemplate.opsForValue().get(token));
     }
 
     public void saveToken(String id, String token) {
-        redisTemplate.opsForValue().set(token, id);
+        redisSessionTemplate.opsForValue().set(token, id);
     }
 
 }

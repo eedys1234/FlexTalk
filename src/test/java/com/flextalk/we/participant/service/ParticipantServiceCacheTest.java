@@ -1,6 +1,8 @@
 package com.flextalk.we.participant.service;
 
-import com.flextalk.we.cmmn.config.CacheConfig;
+import com.flextalk.we.cmmn.config.EmbeddedRedisCacheConfig;
+import com.flextalk.we.cmmn.config.RedisConfig;
+import com.flextalk.we.cmmn.prop.RedisCacheProperties;
 import com.flextalk.we.cmmn.util.CacheNames;
 import com.flextalk.we.participant.cmmn.ParticipantMatchers;
 import com.flextalk.we.participant.domain.entity.Participant;
@@ -20,11 +22,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -37,12 +40,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-@Import({CacheConfig.class, ParticipantService.class})
 @ExtendWith(SpringExtension.class)
-@EnableCaching
+@SpringBootTest
+@ActiveProfiles("test")
 @ImportAutoConfiguration(classes = {
-    CacheAutoConfiguration.class,
-    RedisAutoConfiguration.class
+    EmbeddedRedisCacheConfig.class,
 })
 public class ParticipantServiceCacheTest {
 
