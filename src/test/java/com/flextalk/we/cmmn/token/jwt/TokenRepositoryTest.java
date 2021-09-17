@@ -1,15 +1,9 @@
 package com.flextalk.we.cmmn.token.jwt;
 
-import com.flextalk.we.cmmn.config.CacheConfig;
-import com.flextalk.we.cmmn.config.IntegrationTestConfig;
-import com.flextalk.we.cmmn.config.TestRedisConfiguration;
-import com.flextalk.we.cmmn.token.TokenGenerator;
-import com.flextalk.we.participant.service.ParticipantService;
+import com.flextalk.we.cmmn.config.EmbeddedRedisSessionConfig;
 import com.flextalk.we.user.cmmn.MockUserFactory;
-import com.flextalk.we.user.domain.entity.CustomUser;
 import com.flextalk.we.user.domain.entity.User;
 import com.flextalk.we.user.domain.repository.TokenRepository;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-@ImportAutoConfiguration(classes = TestRedisConfiguration.class)
+@ImportAutoConfiguration(classes = EmbeddedRedisSessionConfig.class)
 public class TokenRepositoryTest {
 
     @Autowired
@@ -39,11 +33,6 @@ public class TokenRepositoryTest {
         MockUserFactory mockUserFactory = new MockUserFactory();
         this.user = mockUserFactory.create(ADMIN_EMAIL, ADMIN_PASSWORD);
         this.token = "token";
-    }
-
-    @AfterEach
-    public void teardown() {
-
     }
 
     @DisplayName("Token 저장 To Redis 테스트")

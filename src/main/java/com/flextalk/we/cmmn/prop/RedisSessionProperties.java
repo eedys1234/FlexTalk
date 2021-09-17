@@ -6,12 +6,13 @@ import org.springframework.context.annotation.Configuration;
 
 @Getter
 @Configuration
-public class RedisProperties {
+public class RedisSessionProperties {
 
     private int redisPort;
     private String redisHost;
 
-    public RedisProperties(@Value("${spring.redis.port}") int redisPort, @Value("${spring.redis.host}") String redisHost) {
+    public RedisSessionProperties(@Value("${spring.redis.session.port}") int redisPort, @Value("${spring.redis.host}") String redisHost) {
+
         this.redisPort = redisPort;
         this.redisHost = redisHost;
     }
